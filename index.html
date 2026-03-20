@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1197,7 +1198,7 @@ function ncard(art,size,idx){
 }
 
 function buildFront(){
-  var allSorted=ARTS.slice().sort(function(a,b){return (hs(b)+b.ai)-(hs(a)+a.ai);});
+  var allSorted=ARTS.filter(function(a){return a&&a.id&&a.room&&ROOMS[a.room];}).sort(function(a,b){return (hs(b)+b.ai)-(hs(a)+a.ai);});
 
   // Ticker
   var ti=[['War on Iran','US and Israel at war - day 19. 1,444 killed in Iran.'],['War in Gaza','Casualty numbers disputed across media outlets'],['AI','EU and US still disagree on how to regulate AI'],['Trump on Trial','Second indictment enters new phase'],['War on Iran','Oman brokered a peace deal the day before strikes began']];
@@ -1218,7 +1219,8 @@ function buildFront(){
 
   // Sidebar rooms
   var sbHtml=Object.values(ROOMS).map(function(r){
-    var arts=RARTS[r.id].slice(0,3);
+    var arts=(RARTS[r.id]||[]).slice(0,3);
+    if(!arts.length) return '';
     var isLive=r.id==='iran-war-2026';
     var artRows=arts.map(function(a,i){
       return '<div class="sbcard-art" data-art="'+a.id+'" onclick="event.stopPropagation();nav(\'article\',this.dataset.art)"><div class="sbcard-art-rank">'+(i+1)+'</div><div><div class="sbcard-art-title">'+a.title+'</div><div class="sbcard-art-src">'+a.src+'</div></div></div>';
@@ -1314,7 +1316,9 @@ function buildFront(){
 function buildRoomsIndex(){
   var bc='<div class="bc wrap"><span class="bcl" onclick="nav(\'front\')">Front page</span><span class="bcs">&#8250;</span><span class="bcc">All rooms</span></div>';
   var cards=Object.values(ROOMS).map(function(r){
-    var arts=RARTS[r.id];var w=arts[0];
+    var arts=RARTS[r.id]||[];
+    if(!arts.length) return '';
+    var w=arts[0];
     var tot=arts.reduce(function(s,a){return s+a.hv;},0);
     return '<div class="ricard" data-room="'+r.id+'" onclick="nav(\'room\',this.dataset.room)"><div class="rilabel">'+r.label+'</div><div class="rict">'+r.full+'</div><div class="ridesc">'+r.desc+'</div><div class="ristats"><span>'+arts.length+' articles</span><span>'+tot+' ratings</span><span>'+arts.filter(function(a){return a.ai>0;}).length+' AI scored</span></div><div class="riwinner"><div class="riwl">Current winner</div><div class="riwt">'+w.title+' - '+w.src+'</div></div></div>';
   }).join('');
@@ -1399,7 +1403,8 @@ function switchView(mode,btn,rid){
 }
 function buildRoom(rid){
   var room=ROOMS[rid];if(!room) return '';
-  var arts=RARTS[rid];
+  var arts=RARTS[rid]||[];
+  if(!arts.length) return '<div class="wrap" style="padding:40px 0;color:var(--text2)">No articles in this room yet. The pipeline will add some soon.</div>';
   var w=arts[0],l=arts[arts.length-1];
   var tot=arts.reduce(function(s,a){return s+a.hv;},0);
   var gap=arts.filter(function(a){return a.gap;}).sort(function(a,b){return b.gapv-a.gapv;})[0];
