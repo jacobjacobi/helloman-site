@@ -1261,26 +1261,30 @@ function buildFront(){
 
   // Pick articles for grid - safe fallback
   var g=[];
+  if(allSorted.length===0){
+    return '<div class="wrap"><div class="masthead"><div class="mey"><span class="ldot"></span>Live</div><div class="mh1">HELLOMAN<em>.AI</em></div><div class="mtag">A living map of how the world is being interpreted.</div></div><div style="padding:40px 0;text-align:center;font-family:var(--fm);font-size:12px;color:var(--text3);letter-spacing:0.08em">No articles yet — run the pipeline to populate the site.</div></div>';
+  }
   var usedRooms={};
   // First pass: one from each room (diversity)
   allSorted.forEach(function(a){if(!usedRooms[a.room]&&g.length<5){usedRooms[a.room]=true;g.push(a);}});
   // Second pass: fill remaining slots with top-scored
   allSorted.forEach(function(a){if(g.indexOf(a)===-1&&g.length<18) g.push(a);});
-  // Safety: pad with first article if somehow empty
-  while(g.length<12) g.push(allSorted[0]);
+  // Safety: pad to at least 12 with first article
+  while(g.length<12&&allSorted.length>0) g.push(allSorted[g.length%allSorted.length]);
 
+  function safeCard(art,size,idx){return art?ncard(art,size,idx):'';}
   var gridHtml=
-    '<div class="np-row r1">'+ncard(g[0],'large',0)+ncard(g[1],'medium',1)+'</div>'+
-    '<div class="np-row r2">'+ncard(g[2],'medium',2)+ncard(g[3],'medium',3)+ncard(g[4],'medium',4)+'</div>'+
-    '<div class="np-row" style="display:grid;grid-template-columns:1fr 2fr;gap:3px">'+ncard(g[5],'medium',5)+ncard(g[6],'large',6)+'</div>'+
-    '<div class="np-row r2">'+ncard(g[7],'small',7)+ncard(g[8],'small',8)+ncard(g[9],'small',9)+'</div>'+
-    '<div class="np-row r1">'+ncard(g[10],'medium',10)+ncard(g[11],'medium',11)+'</div>';
+    '<div class="np-row r1">'+safeCard(g[0],'large',0)+safeCard(g[1],'medium',1)+'</div>'+
+    '<div class="np-row r2">'+safeCard(g[2],'medium',2)+safeCard(g[3],'medium',3)+safeCard(g[4],'medium',4)+'</div>'+
+    '<div class="np-row" style="display:grid;grid-template-columns:1fr 2fr;gap:3px">'+safeCard(g[5],'medium',5)+safeCard(g[6],'large',6)+'</div>'+
+    '<div class="np-row r2">'+safeCard(g[7],'small',7)+safeCard(g[8],'small',8)+safeCard(g[9],'small',9)+'</div>'+
+    (g[10]?'<div class="np-row r1">'+safeCard(g[10],'medium',10)+safeCard(g[11],'medium',11)+'</div>':'');
 
   // More articles (hidden initially)
   var moreHtml=
-    '<div class="np-row r2">'+ncard(g[12],'medium',12)+ncard(g[13],'medium',13)+ncard(g[14],'small',14)+'</div>'+
-    '<div class="np-row r1">'+ncard(g[15],'large',15)+ncard(g[16],'medium',16)+'</div>'+
-    (g[17]?'<div class="np-row r2">'+ncard(g[17],'small',17)+(allSorted[17]?ncard(allSorted[17],'small',18):'')+(allSorted[18]?ncard(allSorted[18],'small',19):'')+'</div>':'');
+    (g[12]?'<div class="np-row r2">'+safeCard(g[12],'medium',12)+safeCard(g[13],'medium',13)+safeCard(g[14],'small',14)+'</div>':'')+
+    (g[15]?'<div class="np-row r1">'+safeCard(g[15],'large',15)+safeCard(g[16],'medium',16)+'</div>':'')+
+    (g[17]?'<div class="np-row r2">'+safeCard(g[17],'small',17)+safeCard(g[18],'small',18)+safeCard(g[19],'small',19)+'</div>':'');
 
   return '<div class="wrap">'+
     '<div class="masthead">'+
@@ -1553,7 +1557,7 @@ function transformArticle(a){
     });
 
     // Build ARTS
-    ARTS=rawArticles.filter(function(a){return a&&a.id;}).map(transformArticle);
+    ARTS=rawArticles.filter(function(a){return a&&a.id&&a.room_id;}).map(transformArticle);
 
     // Rebuild lookups
     ART={};
