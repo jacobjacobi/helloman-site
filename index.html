@@ -1553,7 +1553,7 @@ function transformArticle(a){
     });
 
     // Build ARTS
-    ARTS=rawArticles.map(transformArticle);
+    ARTS=rawArticles.filter(function(a){return a&&a.id;}).map(transformArticle);
 
     // Rebuild lookups
     ART={};
