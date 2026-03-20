@@ -1259,19 +1259,16 @@ function buildFront(){
   var g10=pool[0];pool.shift();
   var g11=pool[0];pool.shift();
 
-  // Pick articles for grid - safe fallback
-  var g=[];
+  // Pick articles for grid - safe
   if(allSorted.length===0){
-    return '<div class="wrap"><div class="masthead"><div class="mey"><span class="ldot"></span>Live</div><div class="mh1">HELLOMAN<em>.AI</em></div><div class="mtag">A living map of how the world is being interpreted.</div></div><div style="padding:40px 0;text-align:center;font-family:var(--fm);font-size:12px;color:var(--text3);letter-spacing:0.08em">No articles yet — run the pipeline to populate the site.</div></div>';
+    return '<div class="wrap"><div class="masthead"><div class="mh1">HELLOMAN<em>.AI</em></div><div class="mtag">Run the pipeline to add articles.</div></div></div>';
   }
+  var g=[];
   var usedRooms={};
-  // First pass: one from each room (diversity)
-  allSorted.forEach(function(a){if(!usedRooms[a.room]&&g.length<5){usedRooms[a.room]=true;g.push(a);}});
-  // Second pass: fill remaining slots with top-scored
-  allSorted.forEach(function(a){if(g.indexOf(a)===-1&&g.length<18) g.push(a);});
-  // Safety: pad to at least 12 with first article
-  while(g.length<12&&allSorted.length>0) g.push(allSorted[g.length%allSorted.length]);
-
+  allSorted.forEach(function(a){if(a&&a.room&&!usedRooms[a.room]&&g.length<5){usedRooms[a.room]=true;g.push(a);}});
+  allSorted.forEach(function(a){if(a&&g.indexOf(a)===-1&&g.length<18)g.push(a);});
+  var safeLen=allSorted.length;
+  while(g.length<12&&safeLen>0)g.push(allSorted[g.length%safeLen]);
   function safeCard(art,size,idx){return art?ncard(art,size,idx):'';}
   var gridHtml=
     '<div class="np-row r1">'+safeCard(g[0],'large',0)+safeCard(g[1],'medium',1)+'</div>'+
