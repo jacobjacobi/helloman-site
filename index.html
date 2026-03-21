@@ -1248,17 +1248,13 @@ var ROOM_IMAGES = {
 };
 
 // Get a stable Unsplash image URL for an article
-// Uses picsum.photos as fallback (always works, no API key needed)
+// Seeded by article ID so same article always gets same photo
 function getArticleImage(art, w, h) {
   var room = art.room || 'iran-war-2026';
   var keywords = ROOM_IMAGES[room] || 'news,world,politics';
-  // Use a seed based on article ID for consistency
-  var seed = 0;
-  var id = art.id || 'default';
-  for (var i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) % 9999;
-  var picNum = 10 + (seed % 990); // picsum range 10-999
-  // Use picsum.photos — always reliable, no API key
-  return 'https://picsum.photos/seed/' + id.replace(/[^a-zA-Z0-9]/g,'').slice(0,12) + '/' + w + '/' + h;
+  var id = (art.id || 'default').replace(/[^a-zA-Z0-9]/g,'').slice(0,16);
+  // Unsplash Source — keyword-relevant, locked per article via seed
+  return 'https://source.unsplash.com/' + w + 'x' + h + '?' + keywords + '&' + id;
 }
 
 // Get hue overlay color for narrative type
