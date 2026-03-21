@@ -610,7 +610,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
     <div class="navlinks">
       <span class="nl on" id="nl-front" onclick="nav('front')">Front Page</span>
       <span class="nl" id="nl-rooms" onclick="nav('rooms')">Rooms</span>
-      <span class="ndate">18 MAR 2026</span>
+      <span class="nl" id="nl-about" onclick="nav('about')">About</span>
+      <span class="ndate" id="nav-date"></span>
     </div>
   </div>
 </div>
@@ -1151,6 +1152,7 @@ function goBack(){
 function setNav(a){
   document.getElementById('nl-front').className='nl'+(a==='front'?' on':'');
   document.getElementById('nl-rooms').className='nl'+(a==='rooms'?' on':'');
+  document.getElementById('nl-about').className='nl'+(a==='about'?' on':'');
 }
 function doRender(view,id){
   // Always keep modal in DOM
@@ -1161,6 +1163,7 @@ function doRender(view,id){
   if(view==='rooms'){setNav('rooms');document.getElementById('page').innerHTML=buildRoomsIndex();}
   if(view==='article'){setNav('front');document.getElementById('page').innerHTML=buildArticle(id);}
   if(view==='room'){setNav('rooms');document.getElementById('page').innerHTML=buildRoom(id);autoSum('sumpanel-'+id);loadRoomArticle(id);}
+  if(view==='about'){setNav('about');document.getElementById('page').innerHTML=buildAbout();}
 }
 function autoSum(pid){
   setTimeout(function(){
@@ -1739,8 +1742,72 @@ function transformArticle(a){
 }
 
 // ── BOOT: try Supabase, fall back to hardcoded data ───────────────────
+function buildAbout(){
+  return '<div class="wrap" style="max-width:720px;padding:60px 24px 80px">'
+
+    // Hero
+    +'<div style="margin-bottom:48px">'
+    +'<div style="font-family:var(--fm);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:16px">What is this</div>'
+    +'<div style="font-family:var(--fd);font-size:clamp(36px,6vw,64px);letter-spacing:0.03em;line-height:1.05;margin-bottom:20px">Helloman<span style="color:var(--accent)">.AI</span> scores ideas,<br>not sources.</div>'
+    +'<div style="font-size:18px;color:var(--text2);line-height:1.8;max-width:580px">So the best argument wins — regardless of who made it.</div>'
+    +'</div>'
+
+    // The problem
+    +'<div style="border-left:2px solid var(--accent);padding-left:24px;margin-bottom:40px">'
+    +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;color:var(--text);margin-bottom:12px">The problem we are solving</div>'
+    +'<p style="font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:12px">We evaluate arguments based on who made them, not whether they are true. A conservative dismisses a strong climate argument because it came from the left. A progressive dismisses a sound economic argument because it came from the right. The source contaminates the idea before the idea gets a fair hearing.</p>'
+    +'<p style="font-size:15px;color:var(--text2);line-height:1.85">The result: good thinking stays hidden. Tribal identity decides what we believe. The strongest perspectives never reach the people who most need to encounter them.</p>'
+    +'</div>'
+
+    // What helloman does
+    +'<div style="margin-bottom:40px">'
+    +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;color:var(--text);margin-bottom:20px">What Helloman.AI does</div>'
+    +['Every article is scored on seven dimensions — Reasoning, Evidence, Originality, Nuance, Clarity, Fairness, and Depth — by an AI with no tribal allegiance.',
+      'The same rubric applies to a Substack writer with 200 subscribers and a New York Times columnist with 2 million readers. The argument stands on its own.',
+      'Human votes are tracked separately. Where humans and AI disagree, that gap is the story — it reveals where rhetoric beats reasoning, or where the crowd is sleeping on a hidden gem.',
+      'Perspectives are grouped into rooms — one topic, all viewpoints, side by side. You see not just what happened, but how different sources interpret what it means.'
+    ].map(function(t,i){
+      return '<div style="display:flex;gap:16px;margin-bottom:20px;align-items:start">'
+        +'<div style="font-family:var(--fd);font-size:28px;color:var(--accent);opacity:0.4;flex-shrink:0;line-height:1">'+(i+1)+'</div>'
+        +'<div style="font-size:15px;color:var(--text2);line-height:1.8">'+t+'</div>'
+        +'</div>';
+    }).join('')
+    +'</div>'
+
+    // Reality split
+    +'<div style="background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(185,128,255,0.05));border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:24px 28px;margin-bottom:40px;position:relative;overflow:hidden">'
+    +'<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--purple),#ff6ef7)"></div>'
+    +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;margin-bottom:12px">The Reality Split</div>'
+    +'<p style="font-size:15px;color:var(--text2);line-height:1.8">Our most important feature. On every topic, we show you what you would believe if you only read one type of source. Security analysts see one war. Humanitarian reporters see another. Independent diaspora writers see a third. These readings are not reconcilable. Helloman.AI makes that visible — so you can decide which reality to inhabit with full knowledge of what you are choosing.</p>'
+    +'</div>'
+
+    // The vision
+    +'<div style="margin-bottom:48px">'
+    +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;color:var(--text);margin-bottom:16px">The larger ambition</div>'
+    +'<p style="font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:12px">Today, some of the most rigorous thinking in the world lives on Substack, in academic blogs, and in independent media that 90% of people never encounter. Not because the ideas lack value — but because they are fragmented, scattered, and hidden inside separate ecosystems.</p>'
+    +'<p style="font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:12px">Helloman.AI is designed to become a unified arena for global thought — where a Substack writer, a journalist, and an independent researcher are all part of the same ecosystem, placed side by side, exposed to the same scrutiny.</p>'
+    +'<p style="font-size:15px;color:var(--accent);line-height:1.85;font-style:italic">This is not another content platform. It is an open intellectual colosseum — where ideas do not hide, but stand face to face.</p>'
+    +'</div>'
+
+    // Built by
+    +'<div style="border-top:1px solid var(--border);padding-top:32px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">'
+    +'<div>'
+    +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text4);margin-bottom:6px">Built by</div>'
+    +'<div style="font-size:15px;color:var(--text2)">A person who reads too many news sources and believes there are more people like them than they could possibly imagine.</div>'
+    +'</div>'
+    +'</div>'
+
+    +'</div>';
+}
+
 (function boot(){
   // Show loading state
+  // Set live date in nav
+var months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+var nd=new Date();
+var dateEl=document.getElementById('nav-date');
+if(dateEl) dateEl.textContent=nd.getDate()+' '+months[nd.getMonth()]+' '+nd.getFullYear();
+
   document.getElementById('page').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div class="spin" style="width:24px;height:24px;border-width:2px"></div><div style="font-family:var(--fm);font-size:11px;color:var(--text4);letter-spacing:0.1em">Loading perspectives...</div></div>';
 
   Promise.all([
