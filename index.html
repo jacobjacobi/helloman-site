@@ -463,12 +463,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
 
 
 /* ARTICLE BANNER IMAGE */
-.art-banner{width:100%;height:120px;position:relative;overflow:hidden;border-radius:8px;margin-bottom:20px}
-.art-banner img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(20%) contrast(1.05)}
-.art-banner-hue{position:absolute;inset:0;mix-blend-mode:multiply}
-.art-banner-fade-left{position:absolute;inset:0;background:linear-gradient(90deg,var(--bg) 0%,transparent 30%,transparent 70%,var(--bg) 100%)}
-.art-banner-fade-bottom{position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(transparent,var(--bg))}
-@media(max-width:600px){.art-banner{height:80px}}
+.art-banner{width:100%;height:140px;position:relative;overflow:hidden;border-radius:8px;margin-bottom:24px;background:var(--bg3)}
+.art-banner img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(15%) contrast(1.1) brightness(0.85)}
+.art-banner-hue{position:absolute;inset:0}
+.art-banner-fade-left{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,10,15,0.6) 0%,transparent 25%,transparent 75%,rgba(8,10,15,0.6) 100%)}
+.art-banner-fade-bottom{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(transparent,var(--bg))}
+@media(max-width:600px){.art-banner{height:90px}}
 
 /* ROOM ARTICLE */
 .room-article{background:linear-gradient(135deg,rgba(0,212,255,0.04) 0%,rgba(185,128,255,0.04) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:28px 32px;margin-bottom:28px;position:relative;overflow:hidden}
@@ -1559,9 +1559,10 @@ function buildArticle(id){
   var engHtml='<div class="eng-bar"><div class="eng-label">Community response</div><div class="eng-actions"><button class="eng-btn" id="eng-like-'+id+'" data-art="'+id+'" data-type="like" onclick="engToggle(this.dataset.art,this.dataset.type)"><span class="eng-icon">&#9825;</span><span class="eng-count" id="engc-like-'+id+'">'+e.likes+'</span></button><button class="eng-btn" id="eng-agree-'+id+'" data-art="'+id+'" data-type="agree" onclick="engToggle(this.dataset.art,this.dataset.type)"><span class="eng-icon">&#10003;</span><span class="eng-count" id="engc-agree-'+id+'">'+e.agrees+' agree</span></button><button class="eng-btn" data-art="'+id+'" onclick="engComment(this.dataset.art)"><span class="eng-icon">&#9636;</span><span>'+e.comments.length+' comments</span></button><button class="eng-btn" id="eng-flag-'+id+'" data-art="'+id+'" data-type="flag" onclick="engToggle(this.dataset.art,this.dataset.type)"><span class="eng-icon" style="font-size:13px">&#9873;</span></button><button class="eng-share" id="eng-share-'+id+'" data-art="'+id+'" onclick="engShare(this.dataset.art)" style="margin-left:auto"><span class="eng-icon">&#8599;</span> Share</button></div><div class="eng-comment-area" id="eng-carea-'+id+'"><div class="eng-comments-list" id="eng-clist-'+id+'">'+e.comments.map(function(c){return '<div class="eng-comment"><div class="eng-comment-meta">'+c.user+' - '+c.time+'</div><div class="eng-comment-text">'+c.text+'</div></div>';}).join('')+'</div><div class="eng-input-row"><input class="eng-input" id="eng-cinput-'+id+'" placeholder="Add your take on this article..." /><button class="eng-post-btn" data-art="'+id+'" onclick="engPost(this.dataset.art)">Post</button></div></div></div>';
   var artImgSrc=getArticleImage(a,1200,240);
   var artHue=getNarrHue(a.narr||'factual');
+  var artImgSrc2='https://picsum.photos/id/'+([366,390,42,64,159,202,327,373,397,417,323,277,175,235,356,440,281,346,376,269,270][(function(){var s=0;var id=a.id||'x';for(var i=0;i<id.length;i++)s=(s*31+id.charCodeAt(i))%9999;return s%21;})()])+'/1200/280';
   var artBanner='<div class="art-banner">'
-    +'<img src="'+artImgSrc+'" loading="lazy" onerror="this.parentNode.style.display=\'none\'" />'
-    +'<div class="art-banner-hue" style="background:'+artHue+'"></div>'
+    +'<img src="'+artImgSrc2+'" loading="lazy" />'
+    +'<div class="art-banner-hue" style="background:'+artHue+';opacity:0.55"></div>'
     +'<div class="art-banner-fade-left"></div>'
     +'<div class="art-banner-fade-bottom"></div>'
     +'</div>';
