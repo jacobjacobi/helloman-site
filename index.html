@@ -869,16 +869,31 @@ function buildCommunityStrip(){
     +'</div>'
     +'</div>';
 
-  // Card 3 — Hidden gem
-  var card3gem=gem?'<div class="cs-card type-gem" style="cursor:pointer" data-art="'+gem.id+'" onclick="nav(\'article\',this.dataset.art)">'
-    +'<div class="cs-card-eyebrow"><span class="cs-card-dot" style="background:var(--accent)"></span><span style="color:var(--accent)">Hidden gem</span></div>'
-    +'<div class="cs-card-article" style="flex:1"><strong>'+gem.title+'</strong>'+gem.src+'</div>'
-    +'<div class="cs-card-stat-sub" style="color:var(--text3)">Crowd gives H&nbsp;'+hs(gem).toFixed(1)+' &mdash; AI scores '+gem.ai+'/10<br>The gap: <span style="color:var(--accent)">+'+gem.gapv.toFixed(1)+' points undervalued</span></div>'
-    +'<div class="cs-card-footer">'
-    +'<span class="cs-badge" style="background:rgba(0,212,255,0.1);color:var(--accent)">Underrated by crowd</span>'
-    +'<span class="cs-card-link" style="color:var(--accent)">Read &#8599;</span>'
-    +'</div>'
-    +'</div>':'';
+  // Card 3 — The Disconnect (AI vs Human gap)
+  var allWithScores=ARTS.filter(function(a){return a.hv>0&&a.ai>0;});
+  var biggestGap=allWithScores.slice().sort(function(a,b){
+    return Math.abs(b.ai-(hs(b)*2))-Math.abs(a.ai-(hs(a)*2));
+  })[0];
+  var card3gem='';
+  if(biggestGap){
+    var hScaled=hs(biggestGap)*2;
+    var gapDir=biggestGap.ai>hScaled?'under':'over';
+    var gapColor=gapDir==='under'?'var(--accent)':'var(--amber)';
+    var gapLabel=gapDir==='under'?'AI rates higher than crowd':'Crowd rates higher than AI';
+    var gapExplain=gapDir==='under'
+      ?'Claude finds stronger reasoning here than readers do. Worth a second look.'
+      :'Readers respond more strongly than analysis supports. May be rhetorical.';
+    card3gem='<div class="cs-card type-gem" style="cursor:pointer" data-art="'+biggestGap.id+'" onclick="nav(\u0027article\u0027,this.dataset.art)">'
+      +'<div class="cs-card-eyebrow"><span class="cs-card-dot" style="background:'+gapColor+'"></span><span style="color:'+gapColor+'">The Disconnect</span></div>'
+      +'<div class="cs-card-article" style="flex:1"><strong>'+biggestGap.title+'</strong><span style="color:var(--text4);display:block">'+biggestGap.src+'</span></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0">'
+      +'<div style="background:rgba(255,170,0,0.1);border-radius:4px;padding:6px 10px;text-align:center"><div style="font-family:var(--fd);font-size:22px;color:var(--amber)">'+hs(biggestGap).toFixed(1)+'</div><div style="font-family:var(--fm);font-size:9px;color:var(--text4);letter-spacing:0.06em">CROWD /5</div></div>'
+      +'<div style="background:rgba(0,212,255,0.1);border-radius:4px;padding:6px 10px;text-align:center"><div style="font-family:var(--fd);font-size:22px;color:var(--accent)">'+biggestGap.ai+'</div><div style="font-family:var(--fm);font-size:9px;color:var(--text4);letter-spacing:0.06em">CLAUDE /10</div></div>'
+      +'</div>'
+      +'<div style="font-family:var(--fm);font-size:10px;color:var(--text3);line-height:1.5">'+gapExplain+'</div>'
+      +'<div class="cs-card-footer"><span class="cs-badge" style="background:rgba(0,212,255,0.1);color:'+gapColor+'">'+gapLabel+'</span><span class="cs-card-link" style="color:'+gapColor+'">Investigate &#8599;</span></div>'
+      +'</div>';
+  }
 
   // Card 4 — Live stats
   var card4='<div class="cs-card type-contested">'
@@ -1291,6 +1306,40 @@ function ncard(art,size,idx){
   return '<div class="ncard '+size+'" data-art="'+art.id+'" onclick="nav(\u0027article\u0027,this.dataset.art)" style="border-top:2px solid '+nc+'40">'+imgHtml+'<div class="ncard-body"><div class="ncard-meta"><span class="ncard-room">'+room.title+'</span></div><div class="ncard-title">'+art.title+'</div><div class="ncard-src">'+art.src+'</div>'+scoresHtml+'</div></div>';
 }
 
+function buildFpRealitySplit(){
+  // Pick the room with the most articles that has a reality split defined
+  var best=null, bestCount=0;
+  Object.keys(RARTS).forEach(function(rid){
+    var arts=RARTS[rid]||[];
+    if(arts.length>bestCount && REALITY_SPLIT[rid]){
+      bestCount=arts.length; best=rid;
+    }
+  });
+  if(!best||bestCount<2) return '';
+
+  var room=ROOMS[best];
+  var splits=REALITY_SPLIT[best];
+  var arts=RARTS[best];
+  if(!splits||!splits.length) return '';
+
+  var cols=splits.length===2?'cols2':'';
+  var blocks=splits.map(function(sp){
+    var clArts=arts.filter(function(a){return sp.narrs.indexOf(a.narr||'factual')!==-1;});
+    var srcList=clArts.slice(0,2).map(function(a){return a.src;}).join(', ');
+    return '<div class="rs-block" style="background:'+sp.bg+';border:1px solid '+sp.border+';cursor:pointer" data-room="'+best+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'
+      +'<div class="rs-cluster-label" style="color:'+sp.color+'"><span class="rs-cluster-dot" style="background:'+sp.color+'"></span>'+sp.cluster+'</div>'
+      +'<div class="rs-intro">'+sp.intro+'</div>'
+      +'<div class="rs-statement">'+sp.statement+'</div>'
+      +(srcList?'<div class="rs-sources">'+srcList+'</div>':'')
+      +'</div>';
+  }).join('');
+
+  return '<div style="margin:20px 0">'
+    +'<div class="slabel" style="margin-bottom:12px">Reality Split &mdash; <span style="color:var(--accent);cursor:pointer" data-room="'+best+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'+room.title+' &#8599;</span> <span style="color:var(--text4);font-size:9px;margin-left:8px">click any block to enter the room</span></div>'
+    +'<div class="rs-grid '+cols+'">'+blocks+'</div>'
+    +'</div>';
+}
+
 function buildFront(){
   var allSorted=ARTS.filter(function(a){return a&&a.id&&a.room&&ROOMS[a.room];}).sort(function(a,b){return (hs(b)+b.ai)-(hs(a)+a.ai);});
 
@@ -1329,7 +1378,7 @@ function buildFront(){
     var artRows=arts.map(function(a,i){
       return '<div class="sbcard-art" data-art="'+a.id+'" onclick="event.stopPropagation();nav(\'article\',this.dataset.art)"><div class="sbcard-art-rank">'+(i+1)+'</div><div><div class="sbcard-art-title">'+a.title+'</div><div class="sbcard-art-src">'+a.src+'</div></div></div>';
     }).join('');
-    return '<div class="sbcard" data-room="'+r.id+'" onclick="nav(\'room\',this.dataset.room)"><div class="sbcard-label" style="'+(isLive?'color:var(--red)':'')+'">'+r.label+(isLive?' &#9679;':'')+'</div><div class="sbcard-title">'+r.full+'</div><div class="sbcard-meta">'+RARTS[r.id].length+' perspectives</div>'+artRows+'</div>';
+    return '<div class="sbcard" data-room="'+r.id+'" onclick="nav(\u0027room\u0027,this.dataset.room)"><div class="sbcard-label" style="'+(isLive?'color:var(--red)':'')+'">'+r.label+(isLive?' &#9679;':'')+'</div><div class="sbcard-title">'+r.full+'</div><div class="sbcard-meta">'+RARTS[r.id].length+' perspectives</div>'+artRows+'</div>';
   }).join('');
 
   // Newspaper grid - pick articles from different rooms for variety
@@ -1395,7 +1444,7 @@ function buildFront(){
       '<div class="mmeta"><span>'+Object.keys(ROOMS).length+' rooms</span><span>'+ARTS.length+' perspectives ranked</span><span>'+ARTS.reduce(function(s,a){return s+a.hv;},0)+' human ratings</span><span>Showing top '+Math.min(18,ARTS.length)+' on front page</span></div>'+
     '</div>'+
     '<div class="rn-section"><div class="slabel">Right now <span class="slr" style="color:var(--red)">LIVE</span></div><div class="rn-items">'+rnHtml+'</div></div>'+
-    buildFpMacro()+makeSumPanel('front',null)+
+    buildFpMacro()+buildFpRealitySplit()+makeSumPanel('front',null)+
     '<div class="ticker" style="margin:16px 0"><div class="tinner">'+th+'</div></div>'+
     buildCommunityStrip()+
     '<div id="fp-layout" style="display:grid;grid-template-columns:1fr 300px;gap:16px;margin-top:24px">'+
@@ -1425,7 +1474,7 @@ function buildRoomsIndex(){
     if(!arts.length) return '';
     var w=arts[0];
     var tot=arts.reduce(function(s,a){return s+a.hv;},0);
-    return '<div class="ricard" data-room="'+r.id+'" onclick="nav(\'room\',this.dataset.room)"><div class="rilabel">'+r.label+'</div><div class="rict">'+r.full+'</div><div class="ridesc">'+r.desc+'</div><div class="ristats"><span>'+arts.length+' articles</span><span>'+tot+' ratings</span><span>'+arts.filter(function(a){return a.ai>0;}).length+' AI scored</span></div><div class="riwinner"><div class="riwl">Current winner</div><div class="riwt">'+w.title+' - '+w.src+'</div></div></div>';
+    return '<div class="ricard" data-room="'+r.id+'" onclick="nav(\u0027room\u0027,this.dataset.room)"><div class="rilabel">'+r.label+'</div><div class="rict">'+r.full+'</div><div class="ridesc">'+r.desc+'</div><div class="ristats"><span>'+arts.length+' articles</span><span>'+tot+' ratings</span><span>'+arts.filter(function(a){return a.ai>0;}).length+' AI scored</span></div><div class="riwinner"><div class="riwl">Current winner</div><div class="riwt">'+w.title+' - '+w.src+'</div></div></div>';
   }).join('');
   return bc+'<div class="wrap"><div class="rihdr"><h1 class="rih1">ALL ROOMS</h1><p class="rip">Each room contains every article about the same real-world event, grouped by perspective cluster.</p></div><div class="rigrid">'+cards+'</div></div>';
 }
@@ -1435,7 +1484,7 @@ function buildArticle(id){
   var a=ART[id];
   if(!a) return '<div class="wrap" style="padding:40px 0;color:var(--text2)">Not found.</div>';
   var room=ROOMS[a.room];var sc=hs(a);
-  var bc='<div class="bc wrap"><span class="bcl" onclick="nav(\'front\')">Front page</span><span class="bcs">&#8250;</span><span class="bcl" onclick="nav(\'rooms\')">Rooms</span><span class="bcs">&#8250;</span><span class="bcl" data-room="'+a.room+'" onclick="nav(\'room\',this.dataset.room)">'+room.title+'</span><span class="bcs">&#8250;</span><span class="bcc">'+a.src+'</span></div>';
+  var bc='<div class="bc wrap"><span class="bcl" onclick="nav(\'front\')">Front page</span><span class="bcs">&#8250;</span><span class="bcl" onclick="nav(\'rooms\')">Rooms</span><span class="bcs">&#8250;</span><span class="bcl" data-room="'+a.room+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'+room.title+'</span><span class="bcs">&#8250;</span><span class="bcc">'+a.src+'</span></div>';
   var gh='';
   if(a.gap==='under') gh='<div class="gapbox gapunder"><strong>Hidden gem:</strong> AI scores this '+a.ai+'/10 but humans gave only '+sc.toFixed(1)+'/5. The crowd rates it '+a.gapv.toFixed(1)+' points below its thinking quality.</div>';
   if(a.gap==='over') gh='<div class="gapbox gapover"><strong>Gap detected:</strong> Humans gave '+sc.toFixed(1)+'/5 but AI scores only '+a.ai+'/10. Gap: +'+a.gapv.toFixed(1)+'.</div>';
@@ -1448,7 +1497,7 @@ function buildArticle(id){
   }).join('');
   var e=getEng(id);
   var engHtml='<div class="eng-bar"><div class="eng-label">Community response</div><div class="eng-actions"><button class="eng-btn" id="eng-like-'+id+'" data-art="'+id+'" data-type="like" onclick="engToggle(this.dataset.art,this.dataset.type)"><span class="eng-icon">&#9825;</span><span class="eng-count" id="engc-like-'+id+'">'+e.likes+'</span></button><button class="eng-btn" id="eng-agree-'+id+'" data-art="'+id+'" data-type="agree" onclick="engToggle(this.dataset.art,this.dataset.type)"><span class="eng-icon">&#10003;</span><span class="eng-count" id="engc-agree-'+id+'">'+e.agrees+' agree</span></button><button class="eng-btn" data-art="'+id+'" onclick="engComment(this.dataset.art)"><span class="eng-icon">&#9636;</span><span>'+e.comments.length+' comments</span></button><button class="eng-btn" id="eng-flag-'+id+'" data-art="'+id+'" data-type="flag" onclick="engToggle(this.dataset.art,this.dataset.type)"><span class="eng-icon" style="font-size:13px">&#9873;</span></button><button class="eng-share" id="eng-share-'+id+'" data-art="'+id+'" onclick="engShare(this.dataset.art)" style="margin-left:auto"><span class="eng-icon">&#8599;</span> Share</button></div><div class="eng-comment-area" id="eng-carea-'+id+'"><div class="eng-comments-list" id="eng-clist-'+id+'">'+e.comments.map(function(c){return '<div class="eng-comment"><div class="eng-comment-meta">'+c.user+' - '+c.time+'</div><div class="eng-comment-text">'+c.text+'</div></div>';}).join('')+'</div><div class="eng-input-row"><input class="eng-input" id="eng-cinput-'+id+'" placeholder="Add your take on this article..." /><button class="eng-post-btn" data-art="'+id+'" onclick="engPost(this.dataset.art)">Post</button></div></div></div>';
-  return bc+'<div class="wrap"><div class="apgrid"><div><div class="artag" data-room="'+a.room+'" onclick="nav(\'room\',this.dataset.room)">'+room.title+' <span class="arbadge">#'+a.rank+' in room</span> '+getNarrTag(a)+'</div><h1 class="aptitle">'+a.title+'</h1><div class="apsrcline"><span class="apsrc">'+a.src+'</span><span style="color:var(--text4)">-</span><span>'+a.hv+' ratings</span><span style="color:var(--text4)">-</span><span>AI conf. '+a.conf+'%</span></div><div class="aplabel">Article summary</div><div class="apsum">'+a.sum+'</div>'+gh+'<div class="apscores"><div class="sblock"><div class="sblabel" style="color:var(--amber)">Human score</div><div><span class="sbnum sh">'+sc.toFixed(1)+'</span><span class="sbden">/5</span></div><div class="sbars"><div class="sbr"><span class="sbl">Quality</span><div class="sbt"><div class="sbf" style="width:'+Math.round(a.hq/5*100)+'%;background:var(--amber)"></div></div><span class="sbv">'+a.hq.toFixed(1)+'</span></div><div class="sbr"><span class="sbl">Trust</span><div class="sbt"><div class="sbf" style="width:'+Math.round(a.ht/5*100)+'%;background:var(--green)"></div></div><span class="sbv">'+a.ht.toFixed(1)+'</span></div></div></div><div class="sblock"><div class="sblabel" style="color:var(--accent)">AI score <span class="conf">'+a.conf+'% conf.</span></div><div><span class="sbnum sa">'+a.ai.toFixed(1)+'</span><span class="sbden">/10</span></div><div class="sbars">'+db+'</div></div></div>'+ph+buildRankReason(a)+'<div class="aibox"><div class="ailabel">AI assessment</div><div class="aitext">'+a.assess+'</div></div>'+engHtml+'<div class="apactions"><button class="btnread" data-src="'+a.src+'" onclick="openSrc(this)">Read original</button><button class="btnroom" data-room="'+a.room+'" onclick="goRoom(this)">Go to room</button></div></div><div><div class="apsbtitle">All perspectives in this room</div>'+ch+'<div style="margin-top:14px"><button class="btnroom" style="width:100%;padding:10px;font-size:14px" data-room="'+a.room+'" onclick="goRoom(this)">Open full room</button></div><div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)"><div class="apsbtitle">Room stats</div>'+[['Articles',ra.length],['Ratings',ra.reduce(function(s,x){return s+x.hv;},0)],['AI scored',ra.filter(function(x){return x.ai>0;}).length]].map(function(row){return '<div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:11px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text4)">'+row[0]+'</span><strong style="color:var(--text2)">'+row[1]+'</strong></div>';}).join('')+'</div></div></div></div>';
+  return bc+'<div class="wrap"><div class="apgrid"><div><div class="artag" data-room="'+a.room+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'+room.title+' <span class="arbadge">#'+a.rank+' in room</span> '+getNarrTag(a)+'</div><h1 class="aptitle">'+a.title+'</h1><div class="apsrcline"><span class="apsrc">'+a.src+'</span><span style="color:var(--text4)">-</span><span>'+a.hv+' ratings</span><span style="color:var(--text4)">-</span><span>AI conf. '+a.conf+'%</span></div><div class="aplabel">Article summary</div><div class="apsum">'+a.sum+'</div>'+gh+'<div class="apscores"><div class="sblock"><div class="sblabel" style="color:var(--amber)">Human score</div><div><span class="sbnum sh">'+sc.toFixed(1)+'</span><span class="sbden">/5</span></div><div class="sbars"><div class="sbr"><span class="sbl">Quality</span><div class="sbt"><div class="sbf" style="width:'+Math.round(a.hq/5*100)+'%;background:var(--amber)"></div></div><span class="sbv">'+a.hq.toFixed(1)+'</span></div><div class="sbr"><span class="sbl">Trust</span><div class="sbt"><div class="sbf" style="width:'+Math.round(a.ht/5*100)+'%;background:var(--green)"></div></div><span class="sbv">'+a.ht.toFixed(1)+'</span></div></div></div><div class="sblock"><div class="sblabel" style="color:var(--accent)">AI score <span class="conf">'+a.conf+'% conf.</span></div><div><span class="sbnum sa">'+a.ai.toFixed(1)+'</span><span class="sbden">/10</span></div><div class="sbars">'+db+'</div></div></div>'+ph+buildRankReason(a)+'<div class="aibox"><div class="ailabel">AI assessment</div><div class="aitext">'+a.assess+'</div></div>'+engHtml+'<div class="apactions"><button class="btnread" data-src="'+a.src+'" onclick="openSrc(this)">Read original</button><button class="btnroom" data-room="'+a.room+'" onclick="goRoom(this)">Go to room</button></div></div><div><div class="apsbtitle">All perspectives in this room</div>'+ch+'<div style="margin-top:14px"><button class="btnroom" style="width:100%;padding:10px;font-size:14px" data-room="'+a.room+'" onclick="goRoom(this)">Open full room</button></div><div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)"><div class="apsbtitle">Room stats</div>'+[['Articles',ra.length],['Ratings',ra.reduce(function(s,x){return s+x.hv;},0)],['AI scored',ra.filter(function(x){return x.ai>0;}).length]].map(function(row){return '<div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:11px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text4)">'+row[0]+'</span><strong style="color:var(--text2)">'+row[1]+'</strong></div>';}).join('')+'</div></div></div></div>';
 }
 
 // ── ROOM ARTICLE ──────────────────────────────────────────────────
