@@ -1247,14 +1247,73 @@ var ROOM_IMAGES = {
   'who-reform':       'health,medicine,global,organization'
 };
 
-// Get a stable Unsplash image URL for an article
-// Seeded by article ID so same article always gets same photo
+// Get a stable image URL for an article
+// Picsum photos with topic-matched IDs — consistent per article
 function getArticleImage(art, w, h) {
   var room = art.room || 'iran-war-2026';
-  var keywords = ROOM_IMAGES[room] || 'news,world,politics';
-  var id = (art.id || 'default').replace(/[^a-zA-Z0-9]/g,'').slice(0,16);
-  // Unsplash Source — keyword-relevant, locked per article via seed
-  return 'https://source.unsplash.com/' + w + 'x' + h + '?' + keywords + '&' + id;
+
+  // Topic-matched Picsum photo pools
+  // War/conflict: dark, dramatic landscapes and cityscapes
+  // Tech: clean, modern, abstract
+  // Climate: nature, weather extremes
+  // Politics: architecture, crowds, formal settings
+  var ROOM_PHOTOS = {
+    'iran-war-2026':    [366,390,42,64,159,202,327,373,397,417],
+    'isr-pal':          [366,390,42,64,159,202,327,373,397,417],
+    'ukraine-russia':   [366,390,64,159,202,327,373,417,474,494],
+    'sudan-war':        [366,390,42,64,159,202,327,373,397,417],
+    'myanmar-war':      [366,390,42,64,159,202,327,373,397,417],
+    'us-china':         [323,277,175,235,356,440,461,503,514,526],
+    'iran':             [366,390,42,64,159,202,327,373,397,417],
+    'taiwan-strait':    [533,546,547,575,583,584,599,606,612,617],
+    'nato-expansion':   [323,277,175,235,356,440,461,503,514,526],
+    'brics-rise':       [323,277,175,235,356,440,461,503,514,526],
+    'arctic-race':      [533,546,547,575,583,584,599,606,612,617],
+    'middle-east':      [395,402,417,420,474,494,504,516,525,534],
+    'trump':            [269,270,271,276,279,282,286,290,294,296],
+    'us-election-2026': [269,270,271,276,279,282,286,290,294,296],
+    'us-immigration':   [366,390,42,64,159,202,327,373,397,417],
+    'us-economy':       [323,277,175,235,356,440,461,503,514,526],
+    'us-supreme-court': [269,270,271,276,279,282,286,290,294,296],
+    'ai-reg':           [0,1,2,3,4,5,6,7,8,9],
+    'ai-race':          [0,1,2,3,4,5,6,7,8,9],
+    'big-tech':         [0,1,2,3,4,5,6,7,8,9],
+    'social-media':     [0,1,2,3,4,5,6,7,8,9],
+    'tiktok-ban':       [0,1,2,3,4,5,6,7,8,9],
+    'crypto':           [323,277,175,235,356,440,461,503,514,526],
+    'space-race':       [110,134,136,143,152,157,169,184,236,287],
+    'climate':          [281,346,376,426,449,450,460,463,484,488],
+    'energy-transition':[281,346,376,426,449,450,460,463,484,488],
+    'cop-climate':      [281,346,376,426,449,450,460,463,484,488],
+    'global-economy':   [323,277,175,235,356,440,461,503,514,526],
+    'trade-wars':       [323,277,175,235,356,440,461,503,514,526],
+    'debt-crisis':      [323,277,175,235,356,440,461,503,514,526],
+    'food-security':    [281,346,376,426,449,450,460,463,484,488],
+    'pandemic-prep':    [395,402,417,420,474,494,504,516,525,534],
+    'mental-health':    [395,402,417,420,474,494,504,516,525,534],
+    'drug-policy':      [395,402,417,420,474,494,504,516,525,534],
+    'free-speech':      [366,390,42,64,159,202,327,373,397,417],
+    'gender-rights':    [366,390,42,64,159,202,327,373,397,417],
+    'migration-crisis': [366,390,42,64,159,202,327,373,397,417],
+    'inequality':       [323,277,175,235,356,440,461,503,514,526],
+    'press-freedom':    [269,270,271,276,279,282,286,290,294,296],
+    'china-domestic':   [323,277,175,235,356,440,461,503,514,526],
+    'russia-domestic':  [323,277,175,235,356,440,461,503,514,526],
+    'india-politics':   [323,277,175,235,356,440,461,503,514,526],
+    'europe-politics':  [323,277,175,235,356,440,461,503,514,526],
+    'africa-politics':  [281,346,376,426,449,450,460,463,484,488],
+    'latin-america':    [281,346,376,426,449,450,460,463,484,488],
+    'un-reform':        [269,270,271,276,279,282,286,290,294,296],
+    'icc-war-crimes':   [269,270,271,276,279,282,286,290,294,296],
+    'who-reform':       [395,402,417,420,474,494,504,516,525,534]
+  };
+
+  var photos = ROOM_PHOTOS[room] || [323,277,175,235,356,440,461,503];
+  var seed = 0;
+  var id = art.id || 'x';
+  for (var i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) % 9999;
+  var photoId = photos[seed % photos.length];
+  return 'https://picsum.photos/id/' + photoId + '/' + w + '/' + h;
 }
 
 // Get hue overlay color for narrative type
