@@ -1255,9 +1255,11 @@ var ROOM_IMAGES = {
   'who-reform':       'health,medicine,global,organization'
 };
 
-// Get a stable image URL for an article
-// Picsum photos with topic-matched IDs — consistent per article
+// Get image URL for an article
+// Uses AI-generated image if available (winners only), falls back to Picsum
 function getArticleImage(art, w, h) {
+  // Winner articles have AI-generated images
+  if (art.aiImg) return art.aiImg;
   var room = art.room || 'iran-war-2026';
 
   // Topic-matched Picsum photo pools
@@ -1350,7 +1352,9 @@ function ncard(art,size,idx){
   var hScore=hs(art);
   var hPct=Math.round(hScore/5*100);
   var aiPct=Math.round(art.ai/10*100);
-  var imgH=size==='large'?180:size==='medium'?120:0;
+  // Winner gets taller image
+  var isWinner=art.isWinner||false;
+  var imgH=size==='large'?(isWinner?280:180):size==='medium'?120:0;
   var gapBadge=art.gap==='under'?'<span class="ncard-gap" style="background:rgba(0,212,255,0.12);color:var(--accent)">Underrated</span>':art.gap==='over'?'<span class="ncard-gap" style="background:rgba(255,170,0,0.12);color:var(--amber)">Overrated</span>':'';
   var imgHtml='';
   if(size!=='small'){
@@ -1363,7 +1367,9 @@ function ncard(art,size,idx){
       +'</div>';
   }
   var scoresHtml='<div class="ncard-scores">'+getNarrTag(art)+'<span class="ncard-score" style="color:var(--amber)">H '+hScore.toFixed(1)+'</span><div class="ncard-bar"><div class="ncard-bar-fill" style="width:'+hPct+'%;background:var(--amber)"></div></div><span class="ncard-score" style="color:'+nc+'">AI '+art.ai+'</span><div class="ncard-bar"><div class="ncard-bar-fill" style="width:'+aiPct+'%;background:'+nc+'"></div></div>'+gapBadge+'</div>';
-  return '<div class="ncard '+size+'" data-art="'+art.id+'" onclick="nav(\u0027article\u0027,this.dataset.art)" style="border-top:2px solid '+nc+'40">'+imgHtml+'<div class="ncard-body"><div class="ncard-meta"><span class="ncard-room">'+room.title+'</span></div><div class="ncard-title">'+art.title+'</div><div class="ncard-src">'+art.src+'</div>'+scoresHtml+'</div></div>';
+  var winnerBadge=isWinner?'<div style="position:absolute;top:12px;left:12px;z-index:2;font-family:var(--fm);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;background:rgba(255,50,50,0.9);color:#fff;padding:3px 9px;border-radius:3px">&#9679; Top Ranked</div>':'';
+  var winnerBorder=isWinner?'border-top:3px solid #ff3232;box-shadow:0 0 24px rgba(255,50,50,0.15)':'border-top:2px solid '+nc+'40';
+  return '<div class="ncard '+size+'" data-art="'+art.id+'" onclick="nav(\u0027article\u0027,this.dataset.art)" style="'+winnerBorder+';position:relative">'+winnerBadge+imgHtml+'<div class="ncard-body"><div class="ncard-meta"><span class="ncard-room">'+room.title+'</span></div><div class="ncard-title">'+art.title+'</div><div class="ncard-src">'+art.src+'</div>'+scoresHtml+'</div></div>';
 }
 
 function buildFpRealitySplit(){
@@ -1483,6 +1489,9 @@ function buildFront(){
   var safeLen=allSorted.length;
   while(g.length<12&&safeLen>0)g.push(allSorted[g.length%safeLen]);
   function safeCard(art,size,idx){return art?ncard(art,size,idx):'';}
+  // Mark top article as winner for special styling
+  if(g[0]) g[0].isWinner = true;
+
   var gridHtml=
     '<div class="np-row r1">'+safeCard(g[0],'large',0)+safeCard(g[1],'medium',1)+'</div>'+
     '<div class="np-row r2">'+safeCard(g[2],'medium',2)+safeCard(g[3],'medium',3)+safeCard(g[4],'medium',4)+'</div>'+
@@ -1797,7 +1806,7 @@ function writeSubmission(roomId,url,title,source,narrative,why,handle){
 // Transform DB row → frontend article object
 function transformArticle(a){
   return {
-    id:a.id, room:a.room_id, rank:a.room_rank, title:a.title, src:a.source, url:a.url,
+    id:a.id, room:a.room_id, rank:a.room_rank, title:a.title, src:a.source, url:a.url, aiImg:a.ai_image_url||null,
     hq:a.human_quality||0, ht:a.human_trust||0, hv:a.human_votes||0,
     ai:a.ai_score||0, conf:a.ai_confidence||0,
     narr:a.narrative, stance:a.stance, rankReason:a.rank_reason,
@@ -1879,7 +1888,7 @@ if(dateEl) dateEl.textContent=nd.getDate()+' '+months[nd.getMonth()]+' '+nd.getF
 
   Promise.all([
     sbFetch('rooms','order=id'),
-    sbFetch('articles','order=room_rank&limit=200')
+    sbFetch('articles','order=room_rank&limit=200&select=*')
   ]).then(function(results){
     var rawRooms=results[0], rawArticles=results[1];
 
