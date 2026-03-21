@@ -939,10 +939,23 @@ function buildMacroFrame(rid){
 }
 
 function buildFpMacro(){
-  var threads=FP_MACRO.threads.map(function(t){return '<span class="fp-macro-thread">'+t+'</span>';}).join('');
+  // Build dynamically from rooms that actually have articles
+  var activeRooms=Object.keys(RARTS).filter(function(r){return (RARTS[r]||[]).length>0;});
+  var totalArts=ARTS.length;
+  var totalRatings=ARTS.reduce(function(s,a){return s+a.hv;},0);
+
+  // Pick most interesting articles across rooms for threads
+  var topRooms=activeRooms.slice(0,6).map(function(r){return ROOMS[r]?ROOMS[r].title:'';}).filter(Boolean);
+  var threads=topRooms.map(function(t){return '<span class="fp-macro-thread">'+t+'</span>';}).join('');
+
+  // Dynamic statement based on what rooms are active
+  var statement=activeRooms.length>0
+    ? 'Tracking '+totalArts+' perspectives across '+activeRooms.length+' active topics &mdash; from '+topRooms.slice(0,3).join(', ')+(topRooms.length>3?' and more':'')+'.'
+    : 'A living map of how the world is being interpreted.';
+
   return '<div class="fp-macro">'
-    +'<div class="fp-macro-label">&#9679; Macro Frame &mdash; the larger systems at play today</div>'
-    +'<div class="fp-macro-text">'+FP_MACRO.statement+'</div>'
+    +'<div class="fp-macro-label">&#9679; Live &mdash; '+activeRooms.length+' rooms active</div>'
+    +'<div class="fp-macro-text">'+statement+'</div>'
     +'<div class="fp-macro-threads">'+threads+'</div>'
     +'</div>';
 }
@@ -1200,21 +1213,31 @@ function ncard(art,size,idx){
 function buildFront(){
   var allSorted=ARTS.filter(function(a){return a&&a.id&&a.room&&ROOMS[a.room];}).sort(function(a,b){return (hs(b)+b.ai)-(hs(a)+a.ai);});
 
-  // Ticker
-  var ti=[['War on Iran','US and Israel at war - day 19. 1,444 killed in Iran.'],['War in Gaza','Casualty numbers disputed across media outlets'],['AI','EU and US still disagree on how to regulate AI'],['Trump on Trial','Second indictment enters new phase'],['War on Iran','Oman brokered a peace deal the day before strikes began']];
-  var th=ti.map(function(t){return '<span class="ti"><strong>'+t[0]+'</strong> '+t[1]+'</span>';}).join('');
+  // Ticker — built from real top articles
+  var tickerArts=allSorted.slice(0,10);
+  var th=tickerArts.map(function(a){
+    var room=ROOMS[a.room];
+    return '<span class="ti"><strong>'+(room?room.title:'News')+'</strong> '+a.title+'</span>';
+  }).join('');
+  if(!th) th='<span class="ti"><strong>Helloman.ai</strong> Loading perspectives...</span>';
   th=th+th;
 
-  // Right now
-  var rnItems=[
-    {text:'US and Israel at war with Iran. Day 19. At least 1,444 killed.',room:'War on Iran',rid:'iran-war-2026',time:'Live',color:'var(--red)',live:true},
-    {text:'Iran launched a new missile wave at Israel and Gulf states overnight.',room:'War on Iran',rid:'iran-war-2026',time:'6h ago',color:'var(--red)',live:true},
-    {text:'A senior US official resigned, saying the Iran war was started due to Israeli lobby pressure.',room:'War on Iran',rid:'iran-war-2026',time:'8h ago',color:'var(--amber)',live:false},
-    {text:'EU AI Act deadline approaching. Major tech companies still unprepared.',room:'AI',rid:'ai-reg',time:'12h ago',color:'var(--accent)',live:false},
-    {text:'Gaza casualty numbers disputed. Different counting methods produce wildly different results.',room:'War in Gaza',rid:'isr-pal',time:'1d ago',color:'var(--text3)',live:false}
-  ];
-  var rnHtml=rnItems.map(function(item){
-    return '<div class="rn-item'+(item.live?' live':'')+' rn-clickable" data-rid="'+item.rid+'" onclick="nav(\u0027room\u0027,this.dataset.rid)" style="cursor:pointer"><div class="rn-bullet" style="background:'+item.color+(item.live?';box-shadow:0 0 6px '+item.color:'')+'"></div><div class="rn-text">'+item.text+'</div><div class="rn-room" style="color:'+item.color+'">'+item.room+' &#8599;</div><div class="rn-time" style="color:'+(item.live?'var(--red)':'var(--text4)')+'">'+item.time+'</div></div>';
+  // Right now — built from real articles, one per room, most recent first
+  var liveRooms=Object.keys(ROOMS).filter(function(r){return ROOMS[r].is_live||r==='iran-war-2026';});
+  var rnArts=[];
+  // First add one from each live room
+  liveRooms.forEach(function(rid){var arts=RARTS[rid]||[];if(arts[0])rnArts.push({art:arts[0],rid:rid,live:true});});
+  // Then fill with top articles from other rooms
+  Object.keys(RARTS).forEach(function(rid){
+    if(liveRooms.indexOf(rid)===-1){var arts=RARTS[rid]||[];if(arts[0]&&rnArts.length<6)rnArts.push({art:arts[0],rid:rid,live:false});}
+  });
+  rnArts=rnArts.slice(0,5);
+  var LIVE_COLORS=['var(--red)','var(--red)','var(--amber)','var(--accent)','var(--text3)'];
+  var rnHtml=rnArts.map(function(item,i){
+    var a=item.art;
+    var room=ROOMS[item.rid];
+    var c=item.live?'var(--red)':LIVE_COLORS[i]||'var(--text3)';
+    return '<div class="rn-item'+(item.live?' live':'')+' rn-clickable" data-rid="'+item.rid+'" onclick="nav(\u0027room\u0027,this.dataset.rid)" style="cursor:pointer"><div class="rn-bullet" style="background:'+c+(item.live?';box-shadow:0 0 6px '+c:'')+'"></div><div class="rn-text">'+a.title+'</div><div class="rn-room" style="color:'+c+'">'+room.title+' &#8599;</div><div class="rn-time" style="color:'+(item.live?'var(--red)':'var(--text4)')+'">Latest</div></div>';
   }).join('');
 
   // Sidebar rooms
