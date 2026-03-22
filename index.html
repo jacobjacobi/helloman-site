@@ -1750,136 +1750,110 @@ function buildFront(){
   var allSorted=ARTS.filter(function(a){return a&&a.id&&a.room&&ROOMS[a.room];}).sort(function(a,b){return (hs(b)+b.ai)-(hs(a)+a.ai);});
 
   if(allSorted.length===0){
-    return '<div class="wrap"><div style="padding:80px 0;font-family:var(--fd);font-size:48px;color:var(--text2)">Loading...</div></div>';
+    return '<div class="wrap"><div class="masthead"><div class="mh1">HELLOMAN<em>.AI</em></div><div class="mtag">Run the pipeline to add articles.</div></div></div>';
   }
 
-  // ── DYNAMIC DATE ──
+  // Ticker
+  var tickerArts=allSorted.slice(0,10);
+  var th=tickerArts.map(function(a){
+    var room=ROOMS[a.room];
+    return '<span class="ti"><strong>'+(room?room.title:'News')+'</strong> '+a.title+'</span>';
+  }).join('');
+  if(!th) th='<span class="ti"><strong>Helloman.ai</strong> Loading perspectives...</span>';
+  th=th+th;
+
+  // Right now
+  var liveRooms=Object.keys(ROOMS).filter(function(r){return ROOMS[r].is_live||r==='iran-war-2026';});
+  var rnArts=[];
+  liveRooms.forEach(function(rid){var arts=RARTS[rid]||[];if(arts[0])rnArts.push({art:arts[0],rid:rid,live:true});});
+  Object.keys(RARTS).forEach(function(rid){
+    if(liveRooms.indexOf(rid)===-1){var arts=RARTS[rid]||[];if(arts[0]&&rnArts.length<6)rnArts.push({art:arts[0],rid:rid,live:false});}
+  });
+  rnArts=rnArts.slice(0,5);
+  var LIVE_COLORS=['var(--red)','var(--red)','var(--amber)','var(--accent)','var(--text3)'];
+  function timeAgo(ts){
+    if(!ts) return 'Latest';
+    var diff=Math.floor((Date.now()-new Date(ts).getTime())/60000);
+    if(diff<5) return 'Just now';
+    if(diff<60) return diff+'m ago';
+    if(diff<1440) return Math.floor(diff/60)+'h ago';
+    return Math.floor(diff/1440)+'d ago';
+  }
+  var rnHtml=rnArts.map(function(item,i){
+    var a=item.art;
+    var room=ROOMS[item.rid];
+    var c=item.live?'var(--red)':LIVE_COLORS[i]||'var(--text3)';
+    var t=item.live?'<span style="color:var(--red)">&#9679; Live</span>':timeAgo(item.art.createdAt);
+    return '<div class="rn-item'+(item.live?' live':'')+' rn-clickable" data-rid="'+item.rid+'" onclick="nav(\u0027room\u0027,this.dataset.rid)" style="cursor:pointer"><div class="rn-bullet" style="background:'+c+(item.live?';box-shadow:0 0 6px '+c:'')+'"></div><div class="rn-text">'+a.title+'</div><div class="rn-room" style="color:'+c+'">'+room.title+' &#8599;</div><div class="rn-time" style="color:'+(item.live?'var(--red)':'var(--text4)')+'">'+t+'</div></div>';
+  }).join('');
+
+  // Sidebar rooms
+  var sbHtml=Object.values(ROOMS).map(function(r){
+    var arts=(RARTS[r.id]||[]).slice(0,3);
+    if(!arts.length) return '';
+    var isLive=r.id==='iran-war-2026';
+    var artRows=arts.map(function(a,i){
+      return '<div class="sbcard-art" data-art="'+a.id+'" onclick="event.stopPropagation();nav(\u0027article\u0027,this.dataset.art)"><div class="sbcard-art-rank">'+(i+1)+'</div><div><div class="sbcard-art-title">'+a.title+'</div><div class="sbcard-art-src">'+a.src+'</div></div></div>';
+    }).join('');
+    return '<div class="sbcard" data-room="'+r.id+'" onclick="nav(\u0027room\u0027,this.dataset.room)"><div class="sbcard-label" style="'+(isLive?'color:var(--red)':'')+'">'+r.label+(isLive?' &#9679;':'')+'</div><div class="sbcard-title">'+r.full+'</div><div class="sbcard-meta">'+RARTS[r.id].length+' perspectives</div>'+artRows+'</div>';
+  }).join('');
+
+  // Newspaper grid
+  var g=[];
+  var usedRooms={};
+  allSorted.forEach(function(a){if(a&&a.room&&!usedRooms[a.room]&&g.length<5){usedRooms[a.room]=true;g.push(a);}});
+  allSorted.forEach(function(a){if(a&&g.indexOf(a)===-1&&g.length<18)g.push(a);});
+  var safeLen=allSorted.length;
+  while(g.length<12&&safeLen>0)g.push(allSorted[g.length%safeLen]);
+
+  if(g[0]) g[0].isWinner=true;
+
+  function safeCard(art,size,idx){return art?ncard(art,size,idx):'';}
+
+  var gridHtml=
+    '<div class="np-row r1">'+safeCard(g[0],'large',0)+safeCard(g[1],'medium',1)+'</div>'+
+    '<div class="np-row r2">'+safeCard(g[2],'medium',2)+safeCard(g[3],'medium',3)+safeCard(g[4],'medium',4)+'</div>'+
+    '<div class="np-row" style="display:grid;grid-template-columns:1fr 2fr;gap:3px">'+safeCard(g[5],'medium',5)+safeCard(g[6],'large',6)+'</div>'+
+    '<div class="np-row r2">'+safeCard(g[7],'small',7)+safeCard(g[8],'small',8)+safeCard(g[9],'small',9)+'</div>'+
+    (g[10]?'<div class="np-row r1">'+safeCard(g[10],'medium',10)+safeCard(g[11],'medium',11)+'</div>':'');
+
+  var moreHtml=
+    (g[12]?'<div class="np-row r2">'+safeCard(g[12],'medium',12)+safeCard(g[13],'medium',13)+safeCard(g[14],'small',14)+'</div>':'')+
+    (g[15]?'<div class="np-row r1">'+safeCard(g[15],'large',15)+safeCard(g[16],'medium',16)+'</div>':'')+
+    (g[17]?'<div class="np-row r2">'+safeCard(g[17],'small',17)+safeCard(g[18],'small',18)+safeCard(g[19],'small',19)+'</div>':'');
+
+  // Dynamic date
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var nd=new Date();
   var dateStr=nd.getDate()+' '+months[nd.getMonth()]+' '+nd.getFullYear();
 
-  // ── PICK BEST REALITY SPLIT ROOM ──
-  var best=null,bestCount=0;
-  Object.keys(RARTS).forEach(function(rid){
-    var arts=RARTS[rid]||[];
-    if(arts.length>bestCount&&REALITY_SPLIT[rid]){bestCount=arts.length;best=rid;}
-  });
-
-  // ── REALITY SPLIT BLOCKS ──
-  var rsHtml='';
-  if(best){
-    var splits=REALITY_SPLIT[best];
-    var room=ROOMS[best];
-    var arts=RARTS[best];
-    rsHtml=splits.map(function(sp,i){
-      var clArts=arts.filter(function(a){return sp.narrs.indexOf(a.narr||'factual')!==-1;});
-      var srcList=clArts.slice(0,3).map(function(a){return a.src;}).join(' · ');
-      return '<div class="pb-split" style="background:'+sp.bg+';border:1px solid '+sp.border+'" data-room="'+best+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'
-        +'<div class="pb-split-cluster" style="color:'+sp.color+'">'+sp.cluster+'</div>'
-        +'<div class="pb-split-intro">'+sp.intro+'</div>'
-        +'<div class="pb-split-statement">'+sp.statement+'</div>'
-        +(srcList?'<div class="pb-split-src">'+srcList+'</div>':'')
-        +'</div>';
-    }).join('');
-  }
-
-  // ── TOP STORY (winner with AI image) ──
-  var topStory=allSorted[0];
-  var topRoom=ROOMS[topStory.room];
-  var topImgHtml='';
-  if(topStory.aiImg){
-    var topHue=getNarrHue(topStory.narr||'factual');
-    topImgHtml='<div class="pb-hero-img"><img src="'+topStory.aiImg+'" loading="lazy" onerror="this.parentNode.style.display=\'none\'" /><div class="pb-hero-img-hue" style="background:'+topHue+'"></div></div>';
-  }
-
-  // ── OTHER STORIES (simple list) ──
-  var otherStories=allSorted.slice(1,9).map(function(a,i){
-    var r=ROOMS[a.room];
-    var nc=NARR_COLORS[a.narr||'factual']||'#9da3b4';
-    return '<div class="pb-story" data-art="'+a.id+'" onclick="nav(\u0027article\u0027,this.dataset.art)">'
-      +'<div class="pb-story-num">'+(i+2)+'</div>'
-      +'<div class="pb-story-body">'
-      +'<div class="pb-story-room" style="color:'+nc+'">'+r.title+'</div>'
-      +'<div class="pb-story-title">'+a.title+'</div>'
-      +'<div class="pb-story-src">'+a.src+'</div>'
-      +'</div>'
-      +'<div class="pb-story-score">'+a.ai.toFixed(1)+'</div>'
-      +'</div>';
-  }).join('');
-
-  // ── ROOMS LIST (active rooms) ──
-  var activeRooms=Object.keys(RARTS).filter(function(r){return (RARTS[r]||[]).length>0;});
-  var roomsList=activeRooms.map(function(rid){
-    var r=ROOMS[rid];
-    var arts=RARTS[rid]||[];
-    var w=arts[0];
-    if(!r||!w) return '';
-    var isLive=rid==='iran-war-2026';
-    return '<div class="pb-room" data-room="'+rid+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'
-      +'<div class="pb-room-label">'+(isLive?'<span class="pb-live">LIVE</span> ':'')+r.title+'</div>'
-      +'<div class="pb-room-count">'+arts.length+' perspectives</div>'
-      +'</div>';
-  }).join('');
-
-  // ── TICKER ──
-  var th=allSorted.slice(0,8).map(function(a){
-    var r=ROOMS[a.room];
-    return '<span class="ti"><strong>'+(r?r.title:'News')+'</strong> '+a.title+'</span>';
-  }).join('');
-  th=th+th;
-
-  return '<div class="pinboard">'
-
-    // ── MASTHEAD ──
-    +'<div class="pb-masthead">'
-    +'<div class="pb-masthead-inner wrap">'
-    +'<div class="pb-date">'+dateStr+'</div>'
-    +'<div class="pb-logo">HELLOMAN<span style="color:var(--accent)">.AI</span></div>'
-    +'<div class="pb-tagline">Reality is not consumed here.<br>It is revealed.</div>'
-    +'</div>'
-    +'</div>'
-
-    // ── TICKER ──
-    +'<div class="ticker"><div class="tinner">'+th+'</div></div>'
-
-    // ── MAIN PINBOARD AREA ──
-    +'<div class="pb-body wrap">'
-
-    // LEFT: Reality Split hero
-    +'<div class="pb-left">'
-    +'<div class="pb-section-label">Reality Split</div>'
-    +(best?'<div class="pb-room-title" data-room="'+best+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'+ROOMS[best].title.toUpperCase()+' <span style="font-size:0.5em;color:var(--accent)">&#8599;</span></div>':'')
-    +'<div class="pb-splits">'+rsHtml+'</div>'
-    +'<div class="pb-splits-note">Click any block to enter the room &rarr;</div>'
-    +'</div>'
-
-    // RIGHT: Top story + others
-    +'<div class="pb-right">'
-
-    // Hero story
-    +'<div class="pb-section-label">Top Perspective</div>'
-    +'<div class="pb-hero" data-art="'+topStory.id+'" onclick="nav(\u0027article\u0027,this.dataset.art)">'
-    +topImgHtml
-    +'<div class="pb-hero-room">'+topRoom.title+'</div>'
-    +'<div class="pb-hero-title">'+topStory.title+'</div>'
-    +'<div class="pb-hero-src">'+topStory.src+' &mdash; AI '+topStory.ai.toFixed(1)+'</div>'
-    +'</div>'
-
-    // Other stories
-    +'<div class="pb-section-label" style="margin-top:32px">More Perspectives</div>'
-    +'<div class="pb-stories">'+otherStories+'</div>'
-    +'</div>'
-    +'</div>'
-
-    // ── ROOMS STRIP ──
-    +'<div class="pb-rooms-strip">'
-    +'<div class="wrap">'
-    +'<div class="pb-section-label">All Rooms</div>'
-    +'<div class="pb-rooms">'+roomsList+'</div>'
-    +'</div>'
-    +'</div>'
-
-    +'</div>';
+  return '<div class="wrap">'+
+    '<div class="masthead">'+
+      '<div class="mey"><span class="ldot"></span>Live - '+dateStr+'</div>'+
+      '<div class="mh1">HELLOMAN<em>.AI</em></div>'+
+      '<div class="mtag">A living map of how the world is being interpreted.</div>'+
+      '<div class="mmeta"><span>'+Object.keys(ROOMS).length+' rooms</span><span>'+ARTS.length+' perspectives ranked</span><span>'+ARTS.reduce(function(s,a){return s+a.hv;},0)+' human ratings</span><span>Showing top '+Math.min(18,ARTS.length)+' on front page</span></div>'+
+    '</div>'+
+    '<div class="rn-section"><div class="slabel">Right now <span class="slr" style="color:var(--red)">LIVE</span></div><div class="rn-items">'+rnHtml+'</div></div>'+
+    buildFpMacro()+buildFpRealitySplit()+makeSumPanel('front',null)+
+    '<div class="ticker" style="margin:16px 0"><div class="tinner">'+th+'</div></div>'+
+    buildCommunityStrip()+
+    '<div id="fp-layout" style="display:grid;grid-template-columns:1fr 300px;gap:16px;margin-top:24px">'+
+      '<div>'+
+        '<div class="slabel">Top perspectives <span class="slr">ranked by human + AI - across all rooms</span></div>'+
+        '<div class="np-grid" style="margin-top:12px">'+gridHtml+
+        '<div id="more-articles" style="display:none">'+moreHtml+'</div>'+
+        '<div style="text-align:center;padding:24px 0">'+
+          '<button onclick="showMore()" id="show-more-btn" class="show-more-btn">Show more perspectives &nbsp;&#8595;</button>'+
+        '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="np-sidebar">'+
+        '<div class="slabel" style="margin-bottom:8px">Rooms</div>'+
+        sbHtml+
+      '</div>'+
+    '</div>'+
+  '</div>';
 }
 
 
