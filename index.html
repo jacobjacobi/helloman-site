@@ -1429,11 +1429,21 @@ function buildFront(){
   });
   rnArts=rnArts.slice(0,5);
   var LIVE_COLORS=['var(--red)','var(--red)','var(--amber)','var(--accent)','var(--text3)'];
+  function timeAgo(ts){
+    if(!ts) return 'Latest';
+    var diff=Math.floor((Date.now()-new Date(ts).getTime())/60000);
+    if(diff<5) return 'Just now';
+    if(diff<60) return diff+'m ago';
+    if(diff<1440) return Math.floor(diff/60)+'h ago';
+    return Math.floor(diff/1440)+'d ago';
+  }
+  var rnTimes=['Live','Latest','Latest','Today','Today'];
   var rnHtml=rnArts.map(function(item,i){
     var a=item.art;
     var room=ROOMS[item.rid];
     var c=item.live?'var(--red)':LIVE_COLORS[i]||'var(--text3)';
-    return '<div class="rn-item'+(item.live?' live':'')+' rn-clickable" data-rid="'+item.rid+'" onclick="nav(\u0027room\u0027,this.dataset.rid)" style="cursor:pointer"><div class="rn-bullet" style="background:'+c+(item.live?';box-shadow:0 0 6px '+c:'')+'"></div><div class="rn-text">'+a.title+'</div><div class="rn-room" style="color:'+c+'">'+room.title+' &#8599;</div><div class="rn-time" style="color:'+(item.live?'var(--red)':'var(--text4)')+'">Latest</div></div>';
+    var t=item.live?'<span style="color:var(--red)">&#9679; Live</span>':timeAgo(item.art.createdAt);
+    return '<div class="rn-item'+(item.live?' live':'')+' rn-clickable" data-rid="'+item.rid+'" onclick="nav(\u0027room\u0027,this.dataset.rid)" style="cursor:pointer"><div class="rn-bullet" style="background:'+c+(item.live?';box-shadow:0 0 6px '+c:'')+'"></div><div class="rn-text">'+a.title+'</div><div class="rn-room" style="color:'+c+'">'+room.title+' &#8599;</div><div class="rn-time" style="color:'+(item.live?'var(--red)':'var(--text4)')+'">'+t+'</div></div>';
   }).join('');
 
   // Sidebar rooms
@@ -1507,7 +1517,11 @@ function buildFront(){
 
   return '<div class="wrap">'+
     '<div class="masthead">'+
-      '<div class="mey"><span class="ldot"></span>Live - 18 March 2026</div>'+
+      (function(){
+    var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var d=new Date();
+    return '<div class="mey"><span class="ldot"></span>Live - '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear()+'</div>';
+  })()+
       '<div class="mh1">HELLOMAN<em>.AI</em></div>'+
       '<div class="mtag">A living map of how the world is being interpreted.</div>'+
       '<div class="mmeta"><span>'+Object.keys(ROOMS).length+' rooms</span><span>'+ARTS.length+' perspectives ranked</span><span>'+ARTS.reduce(function(s,a){return s+a.hv;},0)+' human ratings</span><span>Showing top '+Math.min(18,ARTS.length)+' on front page</span></div>'+
@@ -1813,7 +1827,8 @@ function transformArticle(a){
     dims:{Reasoning:a.dim_reasoning||0,Evidence:a.dim_evidence||0,Originality:a.dim_originality||0,
           Nuance:a.dim_nuance||0,Clarity:a.dim_clarity||0,Fairness:a.dim_fairness||0,Depth:a.dim_depth||0},
     pen:a.penalties||[], sum:a.summary, assess:a.assessment,
-    gap:a.gap, gapv:a.gap_value||0, submitted:a.is_community||false
+    gap:a.gap, gapv:a.gap_value||0, submitted:a.is_community||false,
+    createdAt:a.created_at||null
   };
 }
 
@@ -1888,7 +1903,7 @@ if(dateEl) dateEl.textContent=nd.getDate()+' '+months[nd.getMonth()]+' '+nd.getF
 
   Promise.all([
     sbFetch('rooms','order=id'),
-    sbFetch('articles','order=room_rank&limit=200&select=*')
+    sbFetch('articles','order=created_at.desc&limit=300&select=*')
   ]).then(function(results){
     var rawRooms=results[0], rawArticles=results[1];
 
