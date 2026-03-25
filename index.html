@@ -611,6 +611,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
 }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="topnav">
@@ -620,6 +621,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
       <span class="nl on" id="nl-front" onclick="nav('front')">Front Page</span>
       <span class="nl" id="nl-rooms" onclick="nav('rooms')">Rooms</span>
       <span class="nl" id="nl-about" onclick="nav('about')">About</span>
+      <span class="nl" id="nl-write" onclick="nav('write',null)" style="color:var(--accent)">Write</span>
+      <button id="auth-btn" onclick="openSignIn()" style="font-family:var(--fm);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;border-radius:4px;cursor:pointer;margin:auto 8px;transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">Sign in</button>
       <span class="ndate" id="nav-date"></span>
     </div>
   </div>
@@ -1162,6 +1165,8 @@ function setNav(a){
   document.getElementById('nl-front').className='nl'+(a==='front'?' on':'');
   document.getElementById('nl-rooms').className='nl'+(a==='rooms'?' on':'');
   document.getElementById('nl-about').className='nl'+(a==='about'?' on':'');
+  var wnl=document.getElementById('nl-write');
+  if(wnl) wnl.className='nl'+(a==='write'?' on':'');
 }
 function doRender(view,id){
   // Always keep modal in DOM
@@ -1173,6 +1178,9 @@ function doRender(view,id){
   if(view==='article'){setNav('front');document.getElementById('page').innerHTML=buildArticle(id);}
   if(view==='room'){setNav('rooms');document.getElementById('page').innerHTML=buildRoom(id);autoSum('sumpanel-'+id);loadRoomArticle(id);}
   if(view==='about'){setNav('about');document.getElementById('page').innerHTML=buildAbout();}
+  if(view==='write'){setNav('write');document.getElementById('page').innerHTML=buildWritePage(id);}
+  if(view==='profile'){setNav('front');document.getElementById('page').innerHTML=buildProfilePage(id);}
+  if(view==='signin'){setNav('front');document.getElementById('page').innerHTML=buildSignInPage();}
 }
 function autoSum(pid){
   setTimeout(function(){
@@ -1682,7 +1690,9 @@ function buildRoom(rid){
   var bc='<div class="bc wrap"><span class="bcl" onclick="nav(\'front\')">Front page</span><span class="bcs">&#8250;</span><span class="bcl" onclick="nav(\'rooms\')">Rooms</span><span class="bcs">&#8250;</span><span class="bcc">'+room.title+'</span></div>';
   var gc=gap?'<div class="gapcall"><div class="gclabel">Biggest gap in this room</div>"<strong>'+gap.title+'</strong>" ('+gap.src+') - '+(gap.gap==='under'?'AI scored '+gap.ai+'/10 but humans gave only '+hs(gap).toFixed(1)+'/5. May be a hidden gem.':'Humans gave '+hs(gap).toFixed(1)+'/5 but AI scores only '+gap.ai+'/10. Crowd may be responding to rhetoric.')+'</div>':'';
   var rctrl='<div class="rctrl"><div class="rsort"><button class="rsb on" data-rid="'+rid+'" onclick="switchView(\'clusters\',this,this.dataset.rid)">Perspectives</button><button class="rsb" data-rid="'+rid+'" onclick="switchView(\'combined\',this,this.dataset.rid)">All ranked</button><button class="rsb" data-rid="'+rid+'" onclick="switchView(\'human\',this,this.dataset.rid)">Human</button><button class="rsb" data-rid="'+rid+'" onclick="switchView(\'ai\',this,this.dataset.rid)">AI score</button></div><div class="rlegend"><div class="rli"><div class="rld" style="background:var(--green)"></div> Best in cluster</div><div class="rli"><div class="rld" style="background:var(--amber)"></div> Gap</div></div></div>';
-  return bc+'<div class="wrap"><div class="roomhdr"><div class="rhey"><span class="ldot"></span>'+room.label+' - Topic Room</div><h1 class="rhtitle">'+room.title.toUpperCase()+'</h1><div class="rhmeta"><span>'+arts.length+' articles</span><span>'+tot+' ratings</span></div></div><div class="wlstrip"><div class="wlcard wlw"><div class="wllabel wlwin">Current winner</div><div class="wltitle" data-art="'+w.id+'" onclick="nav(\'article\',this.dataset.art)">'+w.title+'</div><div class="wlsrc">'+w.src+' - H '+hs(w).toFixed(1)+' / AI '+w.ai+'</div></div><div class="wlcard wll"><div class="wllabel wllose">Lowest ranked</div><div class="wltitle" data-art="'+l.id+'" onclick="nav(\'article\',this.dataset.art)">'+l.title+'</div><div class="wlsrc">'+l.src+' - H '+hs(l).toFixed(1)+' / AI '+l.ai+'</div></div></div>'+gc+buildRoomArticle(rid)+buildMacroFrame(rid)+buildRoomArticlePanel(rid)+buildRealitySplit(rid)+buildMissingBlock(rid)+makeSumPanel('room',rid)+rctrl+buildSubmitBar(rid)+'<div id="room-grid">'+buildPerspectiveClusters(rid)+'</div></div>';
+  return bc+'<div class="wrap"><div class="roomhdr"><div class="rhey"><span class="ldot"></span>'+room.label+' - Topic Room</div><h1 class="rhtitle">'+room.title.toUpperCase()+'</h1><div class="rhmeta"><span>'+arts.length+' articles</span><span>'+tot+' ratings</span></div></div><div class="wlstrip"><div class="wlcard wlw"><div class="wllabel wlwin">Current winner</div><div class="wltitle" data-art="'+w.id+'" onclick="nav(\'article\',this.dataset.art)">'+w.title+'</div><div class="wlsrc">'+w.src+' - H '+hs(w).toFixed(1)+' / AI '+w.ai+'</div></div><div class="wlcard wll"><div class="wllabel wllose">Lowest ranked</div><div class="wltitle" data-art="'+l.id+'" onclick="nav(\'article\',this.dataset.art)">'+l.title+'</div><div class="wlsrc">'+l.src+' - H '+hs(l).toFixed(1)+' / AI '+l.ai+'</div></div></div>'+gc+buildRoomArticle(rid)+buildMacroFrame(rid)+buildRoomArticlePanel(rid)+buildRealitySplit(rid)+buildMissingBlock(rid)+makeSumPanel('room',rid)+rctrl+buildSubmitBar(rid)+'<div id="room-grid">'+buildPerspectiveClusters(rid)+'</div>'
+    +(currentUser&&currentProfile?'<div style="margin-top:24px"><button onclick="nav(\u0027write\u0027,\u0027'+rid+'\u0027)" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:18px;letter-spacing:0.06em;border:none;border-radius:6px;padding:12px 28px;cursor:pointer">Write in this room &#8599;</button></div>':'<div style="margin-top:24px;padding:16px 20px;background:var(--bg2);border:1px dashed var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div style="font-size:14px;color:var(--text2)">Have a perspective on this topic? <strong style="color:var(--text)">Publish it here.</strong> Same scoring rules as every other source.</div><button onclick="openSignIn()" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:16px;letter-spacing:0.06em;border:none;border-radius:6px;padding:10px 22px;cursor:pointer;white-space:nowrap">Sign in to write</button></div>')
+    +'</div>';
 }
 
 // ── SUMMARY PANEL ──
@@ -1758,6 +1768,85 @@ function buildFrontPrompt(){
 var SUPABASE_URL='https://xoxecruhrdbsnvknocwo.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhveGVjcnVocmRic252a25vY3dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjg5OTYsImV4cCI6MjA4OTYwNDk5Nn0.j1Faa9gpYRCJ8GUfuT5lVGWVgJZiJInnTsRm3lxi-Wc';
 var SB_API=SUPABASE_URL+'/rest/v1';
+
+// ── AUTH CLIENT ───────────────────────────────────────────────────────
+var _supabase=null;
+var currentUser=null;
+var currentProfile=null;
+
+function getSupabase(){
+  if(!_supabase) _supabase=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  return _supabase;
+}
+
+async function initAuth(){
+  var sb=getSupabase();
+  var session=await sb.auth.getSession();
+  if(session.data.session){
+    currentUser=session.data.session.user;
+    await loadProfile(currentUser.id);
+  }
+  sb.auth.onAuthStateChange(async function(event,session){
+    if(session){
+      currentUser=session.user;
+      await loadProfile(currentUser.id);
+    } else {
+      currentUser=null;
+      currentProfile=null;
+    }
+    updateAuthUI();
+  });
+}
+
+async function loadProfile(userId){
+  var res=await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId+'&select=*',{headers:SB_HEADERS});
+  var data=await res.json();
+  if(Array.isArray(data)&&data.length>0) currentProfile=data[0];
+  else currentProfile=null;
+}
+
+function updateAuthUI(){
+  var el=document.getElementById('auth-btn');
+  if(!el) return;
+  if(currentUser&&currentProfile){
+    el.textContent='@'+currentProfile.handle;
+    el.onclick=function(){nav('profile',currentUser.id);};
+  } else if(currentUser&&!currentProfile){
+    el.textContent='Set handle';
+    el.onclick=function(){openSetHandle();};
+  } else {
+    el.textContent='Sign in';
+    el.onclick=function(){openSignIn();};
+  }
+}
+
+async function signIn(email){
+  var sb=getSupabase();
+  var res=await sb.auth.signInWithOtp({
+    email:email,
+    options:{emailRedirectTo:window.location.href}
+  });
+  return res.error?null:true;
+}
+
+async function signOut(){
+  await getSupabase().auth.signOut();
+  currentUser=null;currentProfile=null;
+  updateAuthUI();
+  nav('front',null);
+}
+
+async function createProfile(handle,bio){
+  if(!currentUser) return null;
+  var res=await fetch(SUPABASE_URL+'/rest/v1/profiles',{
+    method:'POST',
+    headers:Object.assign({},SB_HEADERS,{'Prefer':'return=representation'}),
+    body:JSON.stringify({id:currentUser.id,handle:handle,bio:bio||''})
+  });
+  var data=await res.json();
+  if(Array.isArray(data)&&data[0]){currentProfile=data[0];updateAuthUI();return data[0];}
+  return null;
+}
 var SB_HEADERS={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
 
 function sbFetch(table,params){
@@ -1861,6 +1950,226 @@ function buildAbout(){
     +'</div>';
 }
 
+// ── SIGN IN MODAL ────────────────────────────────────────────────────
+function openSignIn(){
+  if(currentUser&&!currentProfile){openSetHandle();return;}
+  if(currentUser&&currentProfile){nav('profile',currentUser.id);return;}
+  var overlay=document.getElementById('signin-overlay');
+  if(overlay) overlay.classList.add('open');
+  else{
+    document.body.insertAdjacentHTML('beforeend',buildSignInModal());
+  }
+}
+function closeSignIn(){
+  var el=document.getElementById('signin-overlay');
+  if(el) el.classList.remove('open');
+}
+async function submitSignIn(){
+  var email=document.getElementById('signin-email').value.trim();
+  if(!email){alert('Please enter your email.');return;}
+  var btn=document.getElementById('signin-submit');
+  btn.textContent='Sending...';btn.disabled=true;
+  var ok=await signIn(email);
+  if(ok){
+    document.getElementById('signin-form').style.display='none';
+    document.getElementById('signin-success').style.display='flex';
+  } else {
+    btn.textContent='Send magic link';btn.disabled=false;
+    alert('Something went wrong. Please try again.');
+  }
+}
+function buildSignInModal(){
+  return '<div class="submit-modal-overlay" id="signin-overlay" onclick="if(event.target===this)closeSignIn()">'
+    +'<div class="submit-modal" style="max-width:420px">'
+    +'<div class="submit-modal-header">'
+    +'<div><div class="submit-modal-title">Enter the arena</div>'
+    +'<div class="submit-modal-sub">Sign in to publish, rate, and build your perspective record</div></div>'
+    +'<button class="submit-modal-close" onclick="closeSignIn()">&#215;</button>'
+    +'</div>'
+    +'<div id="signin-form" class="submit-modal-body">'
+    +'<div class="submit-field"><label class="submit-label">Your email</label>'
+    +'<input class="submit-input" id="signin-email" type="email" placeholder="you@example.com" /></div>'
+    +'<div class="submit-hint">&#9432; We send a magic link — no password needed. Click it to sign in instantly.</div>'
+    +'<div class="submit-actions">'
+    +'<button class="submit-btn-cancel" onclick="closeSignIn()">Cancel</button>'
+    +'<button class="submit-btn-main" id="signin-submit" onclick="submitSignIn()">Send magic link</button>'
+    +'</div>'
+    +'</div>'
+    +'<div id="signin-success" style="display:none;flex-direction:column;align-items:center;gap:14px;padding:32px 24px;text-align:center">'
+    +'<div style="font-size:48px">&#9993;</div>'
+    +'<div style="font-family:var(--fd);font-size:24px;color:var(--green)">Check your email</div>'
+    +'<div style="font-size:14px;color:var(--text2);line-height:1.7">We sent a magic link to your inbox. Click it to sign in — no password needed.</div>'
+    +'<button class="submit-success-close" onclick="closeSignIn()">Got it</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+// ── SET HANDLE MODAL ──────────────────────────────────────────────────
+function openSetHandle(){
+  document.body.insertAdjacentHTML('beforeend',buildSetHandleModal());
+}
+function closeSetHandle(){
+  var el=document.getElementById('handle-overlay');
+  if(el) el.remove();
+}
+async function submitHandle(){
+  var handle=document.getElementById('handle-input').value.trim().replace(/[^a-zA-Z0-9_]/g,'');
+  var bio=document.getElementById('bio-input').value.trim();
+  if(!handle||handle.length<3){alert('Handle must be at least 3 characters, letters/numbers/underscores only.');return;}
+  var btn=document.getElementById('handle-submit');
+  btn.textContent='Creating...';btn.disabled=true;
+  var profile=await createProfile(handle,bio);
+  if(profile){
+    closeSetHandle();
+    updateAuthUI();
+    nav('profile',currentUser.id);
+  } else {
+    btn.textContent='Create profile';btn.disabled=false;
+    alert('That handle may already be taken. Try another.');
+  }
+}
+function buildSetHandleModal(){
+  return '<div class="submit-modal-overlay open" id="handle-overlay" onclick="if(event.target===this)closeSetHandle()">'
+    +'<div class="submit-modal" style="max-width:420px">'
+    +'<div class="submit-modal-header">'
+    +'<div><div class="submit-modal-title">Choose your handle</div>'
+    +'<div class="submit-modal-sub">This is your name in the arena. Choose wisely.</div></div>'
+    +'</div>'
+    +'<div class="submit-modal-body">'
+    +'<div class="submit-field"><label class="submit-label">Handle <span>*</span></label>'
+    +'<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--text3);font-family:var(--fm)">@</span>'
+    +'<input class="submit-input" id="handle-input" placeholder="yourhandle" style="flex:1" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,\u0027\u0027)" /></div>'
+    +'<div style="font-family:var(--fm);font-size:10px;color:var(--text4);margin-top:4px">Letters, numbers, underscores only. Cannot be changed later.</div>'
+    +'</div>'
+    +'<div class="submit-field"><label class="submit-label">Bio (optional)</label>'
+    +'<input class="submit-input" id="bio-input" placeholder="Who are you? What drives you?" /></div>'
+    +'<div class="submit-actions">'
+    +'<button class="submit-btn-main" id="handle-submit" onclick="submitHandle()">Create profile</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+// ── PROFILE PAGE ──────────────────────────────────────────────────────
+function buildProfilePage(userId){
+  var isOwn=currentUser&&currentUser.id===userId;
+  var profile=isOwn?currentProfile:null;
+  if(!profile) return '<div class="wrap" style="padding:60px 0;color:var(--text2)">Loading profile...</div>';
+
+  // Fetch their original articles
+  return '<div class="wrap" style="max-width:720px;padding:48px 24px 80px">'
+    +'<div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:40px;gap:20px;flex-wrap:wrap">'
+    +'<div>'
+    +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px">Helloman.ai writer</div>'
+    +'<div style="font-family:var(--fd);font-size:clamp(36px,6vw,56px);letter-spacing:0.03em;line-height:1;margin-bottom:10px">@'+profile.handle+'</div>'
+    +(profile.bio?'<div style="font-size:15px;color:var(--text2);line-height:1.7;max-width:480px">'+profile.bio+'</div>':'')
+    +'</div>'
+    +(isOwn?'<button onclick="signOut()" style="font-family:var(--fm);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:8px 16px;border-radius:4px;cursor:pointer">Sign out</button>':'')
+    +'</div>'
+    +'<div style="border-top:1px solid var(--border);padding-top:32px">'
+    +'<div style="font-family:var(--fm);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text4);margin-bottom:20px">Your articles</div>'
+    +'<div id="profile-articles"><div style="color:var(--text3);font-family:var(--fm);font-size:12px">Loading...</div></div>'
+    +'</div>'
+    +'<div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">'
+    +'<button onclick="nav(\u0027write\u0027,null)" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:18px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px 32px;cursor:pointer">Write a new article &#8599;</button>'
+    +'</div>'
+    +'</div>';
+}
+
+// ── WRITE PAGE ────────────────────────────────────────────────────────
+function buildWritePage(roomId){
+  if(!currentUser){
+    return '<div class="wrap" style="padding:80px 24px;text-align:center">'
+      +'<div style="font-family:var(--fd);font-size:48px;letter-spacing:0.03em;margin-bottom:16px">Write here.</div>'
+      +'<div style="font-size:16px;color:var(--text2);margin-bottom:32px;max-width:400px;margin-left:auto;margin-right:auto;line-height:1.7">Publish your perspective directly into a room. Compete on equal terms with every other source.</div>'
+      +'<button onclick="openSignIn()" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:20px;letter-spacing:0.06em;border:none;border-radius:6px;padding:14px 36px;cursor:pointer">Sign in to write</button>'
+      +'</div>';
+  }
+  if(!currentProfile){
+    return '<div class="wrap" style="padding:80px 24px;text-align:center">'
+      +'<div style="font-family:var(--fd);font-size:36px;margin-bottom:16px">First, choose your handle.</div>'
+      +'<button onclick="openSetHandle()" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:18px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px 32px;cursor:pointer">Set up profile</button>'
+      +'</div>';
+  }
+
+  var roomOptions=Object.values(ROOMS).map(function(r){
+    var sel=roomId===r.id?'selected':'';
+    return '<option value="'+r.id+'" '+sel+'>'+r.title+'</option>';
+  }).join('');
+
+  var narrOptions=['analytical','humanitarian','security','diplomatic','legal','policy','economic','geopolitical','political','investigative','ideological','factual'].map(function(n){
+    return '<option value="'+n+'">'+n.charAt(0).toUpperCase()+n.slice(1)+'</option>';
+  }).join('');
+
+  return '<div class="wrap" style="max-width:720px;padding:48px 24px 80px">'
+    +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">Publishing as @'+currentProfile.handle+'</div>'
+    +'<div style="font-family:var(--fd);font-size:clamp(32px,5vw,52px);letter-spacing:0.03em;margin-bottom:32px">Write your perspective</div>'
+    +'<div style="display:flex;flex-direction:column;gap:20px">'
+    +'<div class="submit-field"><label class="submit-label">Room <span>*</span></label>'
+    +'<select class="submit-input" id="write-room" style="cursor:pointer"><option value="">Choose a room...</option>'+roomOptions+'</select></div>'
+    +'<div class="submit-field"><label class="submit-label">Headline <span>*</span></label>'
+    +'<input class="submit-input" id="write-title" placeholder="State your argument in one sharp sentence" /></div>'
+    +'<div class="submit-field"><label class="submit-label">Your perspective <span>*</span></label>'
+    +'<textarea class="submit-textarea" id="write-body" style="min-height:320px;font-size:15px;line-height:1.8" placeholder="Write your argument here. Be specific. Name your evidence. Acknowledge what you might be wrong about. The AI will score your reasoning — not your politics."></textarea></div>'
+    +'<div class="submit-field"><label class="submit-label">Perspective type</label>'
+    +'<select class="submit-input" id="write-narr" style="cursor:pointer">'+narrOptions+'</select></div>'
+    +'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px 18px;border-left:2px solid var(--accent)">'
+    +'<div style="font-family:var(--fm);font-size:10px;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">How scoring works</div>'
+    +'<div style="font-size:13px;color:var(--text2);line-height:1.7">Your article will be scored by Claude on seven dimensions: Reasoning, Evidence, Originality, Nuance, Clarity, Fairness, and Depth. The same rubric applies to every article on the platform — from the New York Times to your Substack. The argument stands on its own.</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:12px;padding-top:8px">'
+    +'<button onclick="nav(\u0027front\u0027,null)" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--fm);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:6px;padding:13px 20px;cursor:pointer">Cancel</button>'
+    +'<button onclick="submitOriginalArticle()" style="flex:1;background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:20px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px;cursor:pointer">Publish to the arena &#8599;</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+async function submitOriginalArticle(){
+  var room=document.getElementById('write-room').value;
+  var title=document.getElementById('write-title').value.trim();
+  var body=document.getElementById('write-body').value.trim();
+  var narr=document.getElementById('write-narr').value;
+  if(!room||!title||!body){alert('Room, headline and article body are required.');return;}
+  if(body.length<200){alert('Your article needs to be at least 200 characters. Make your argument.');return;}
+
+  var btn=document.querySelector('[onclick="submitOriginalArticle()"]');
+  btn.textContent='Publishing...';btn.disabled=true;
+
+  // Save to Supabase
+  var res=await fetch(SUPABASE_URL+'/rest/v1/original_articles',{
+    method:'POST',
+    headers:Object.assign({},SB_HEADERS,{
+      'Authorization':'Bearer '+(await getSupabase().auth.getSession()).data.session.access_token,
+      'Prefer':'return=representation'
+    }),
+    body:JSON.stringify({
+      author_id:currentUser.id,
+      room_id:room,
+      title:title,
+      body:body,
+      narrative:narr,
+      is_scored:false
+    })
+  });
+
+  var data=await res.json();
+  if(res.ok&&data[0]){
+    // Show success
+    document.querySelector('.wrap').innerHTML='<div style="padding:80px 24px;text-align:center">'
+      +'<div style="font-size:48px;margin-bottom:16px">&#10003;</div>'
+      +'<div style="font-family:var(--fd);font-size:36px;color:var(--green);margin-bottom:12px">Published.</div>'
+      +'<div style="font-size:15px;color:var(--text2);margin-bottom:32px;line-height:1.7">Your article is in the arena. Claude will score it within the hour. It will compete on equal terms with every other source in this room.</div>'
+      +'<button onclick="nav(\u0027room\u0027,\u0027'+room+'\u0027)" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:18px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px 32px;cursor:pointer">See it in the room</button>'
+      +'</div>';
+  } else {
+    btn.textContent='Publish to the arena ↗';btn.disabled=false;
+    alert('Something went wrong. Please try again.');
+  }
+}
+
 (function boot(){
   // Show loading state
   // Set live date in nav
@@ -1900,7 +2209,8 @@ if(dateEl) dateEl.textContent=nd.getDate()+' '+months[nd.getMonth()]+' '+nd.getF
     });
 
     console.log('✅ Loaded from Supabase: '+ARTS.length+' articles across '+Object.keys(ROOMS).length+' rooms');
-    doRender('front',null);
+    initAuth().then(function(){updateAuthUI();});
+  doRender('front',null);
 
   }).catch(function(err){
     document.getElementById('page').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px"><div style="font-family:var(--fd);font-size:32px;color:var(--red)">Could not connect</div><div style="font-family:var(--fm);font-size:12px;color:var(--text3);letter-spacing:0.06em;max-width:320px;text-align:center;line-height:1.8">Unable to reach the database.<br>Check your connection and try again.</div><button onclick="location.reload()" style="margin-top:8px;background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:16px;letter-spacing:0.06em;border:none;border-radius:6px;padding:11px 28px;cursor:pointer">Retry</button></div>';
