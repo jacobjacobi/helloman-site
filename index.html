@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Helloman.ai</title>
+<title>ARGUS</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -28,7 +28,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
 
 #topnav{background:rgba(8,10,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
 .ni{max-width:1140px;margin:0 auto;padding:0 24px;display:flex;align-items:stretch;justify-content:space-between}
-.logo{font-family:var(--fd);font-size:26px;letter-spacing:0.05em;padding:11px 0;cursor:pointer;color:var(--text);user-select:none}
+.logo{font-family:var(--fd);font-size:28px;letter-spacing:0.18em;padding:11px 0;cursor:pointer;color:#fff;user-select:none;transition:opacity 0.2s}
+.logo:hover{opacity:0.7}
 .logo-dot{color:var(--accent)}
 .navlinks{display:flex;align-items:stretch}
 .nl{font-family:var(--fm);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);padding:0 14px;display:flex;align-items:center;border-left:1px solid var(--border);cursor:pointer;transition:all 0.2s;position:relative;white-space:nowrap}
@@ -616,7 +617,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
 <body>
 <div id="topnav">
   <div class="ni">
-    <span class="logo" onclick="nav('front')">HELLOMAN<span class="logo-dot">.AI</span></span>
+    <span class="logo" onclick="nav('front')">ARGUS</span>
     <div class="navlinks">
       <span class="nl on" id="nl-front" onclick="nav('front')">Front Page</span>
       <span class="nl" id="nl-rooms" onclick="nav('rooms')">Rooms</span>
@@ -644,9 +645,9 @@ var MISSING={'ai-reg':'No article represents workers whose jobs AI may affect. N
 var CLUSTERS={'ai-reg':[{id:'gov',name:'Governance',desc:'How should AI be controlled? Focus on rules, oversight, and democratic accountability.',color:'#00d4ff',bg:'rgba(0,212,255,0.05)',border:'rgba(0,212,255,0.18)',narrs:['analytical','policy','investigative']},{id:'econ',name:'Economic Stakes',desc:'What does regulation mean for business, competitiveness, and innovation?',color:'#ffaa00',bg:'rgba(255,170,0,0.05)',border:'rgba(255,170,0,0.18)',narrs:['economic']},{id:'harm',name:'Real-World Harm',desc:'AI is already causing harm now. The regulatory debate is missing the point.',color:'#ff6ef7',bg:'rgba(255,110,247,0.05)',border:'rgba(255,110,247,0.18)',narrs:['humanitarian']}],'isr-pal':[{id:'strat',name:'Strategic',desc:'Military operations, alliances, and geopolitical consequences of the conflict.',color:'#ff4569',bg:'rgba(255,69,105,0.05)',border:'rgba(255,69,105,0.18)',narrs:['security','analytical','diplomatic']},{id:'human',name:'Humanitarian',desc:'Civilian casualties, displacement, and the human cost.',color:'#ff6ef7',bg:'rgba(255,110,247,0.05)',border:'rgba(255,110,247,0.18)',narrs:['humanitarian']},{id:'ideo',name:'Ideological',desc:'Arguments rooted in values and political identity rather than evidence.',color:'#b980ff',bg:'rgba(185,128,255,0.05)',border:'rgba(185,128,255,0.18)',narrs:['ideological']}],'trump':[{id:'legal',name:'Legal Analysis',desc:'What does the law actually say? Constitutional arguments and case precedent.',color:'#b980ff',bg:'rgba(185,128,255,0.05)',border:'rgba(185,128,255,0.18)',narrs:['legal']},{id:'pol',name:'Political Impact',desc:'What does this mean for elections, voters, and American democracy?',color:'#ffaa00',bg:'rgba(255,170,0,0.05)',border:'rgba(255,170,0,0.18)',narrs:['political']},{id:'ideo',name:'Political Positioning',desc:'Partisan takes that prioritize narrative over legal reasoning.',color:'#ff4569',bg:'rgba(255,69,105,0.05)',border:'rgba(255,69,105,0.18)',narrs:['ideological']}],'iran':[{id:'pol',name:'Policy and Strategy',desc:'Sanctions, diplomacy, and long-term US-Iran strategic dynamics.',color:'#00d4ff',bg:'rgba(0,212,255,0.05)',border:'rgba(0,212,255,0.18)',narrs:['policy','geopolitical','analytical']},{id:'econ',name:'Economic Pressure',desc:'Sanctions, inflation, and how economic pressure shapes the Iranian state.',color:'#ffaa00',bg:'rgba(255,170,0,0.05)',border:'rgba(255,170,0,0.18)',narrs:['economic','factual']},{id:'ideo',name:'State Messaging',desc:'State-aligned or ideologically driven framing with minimal analysis.',color:'#ff4569',bg:'rgba(255,69,105,0.05)',border:'rgba(255,69,105,0.18)',narrs:['ideological']}],'iran-war-2026':[{id:'dipl',name:'Diplomatic and Legal',desc:'Was this war avoidable? The peace deal that was abandoned and what it means.',color:'#00e676',bg:'rgba(0,230,118,0.05)',border:'rgba(0,230,118,0.18)',narrs:['diplomatic','analytical']},{id:'human',name:'Humanitarian',desc:'Civilian casualties, displacement, and the human cost inside Iran and beyond.',color:'#ff6ef7',bg:'rgba(255,110,247,0.05)',border:'rgba(255,110,247,0.18)',narrs:['humanitarian']},{id:'sec',name:'Security and Strategy',desc:'Military objectives, nuclear threat, and strategic outcomes of the campaign.',color:'#ff4569',bg:'rgba(255,69,105,0.05)',border:'rgba(255,69,105,0.18)',narrs:['security','geopolitical','ideological']}]};
 
 function getSourceBadge(a){
-  // 🟥 Native Helloman.ai original
+  // 🟥 Native ARGUS original
   if(a.submitted||a.id&&a.id.startsWith('sub-')||a.isOriginal){
-    return '<span style="font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:3px;background:rgba(255,50,50,0.15);color:#ff4444;border:1px solid rgba(255,50,50,0.3);letter-spacing:0.06em">&#9632; Helloman</span>';
+    return '<span style="font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:3px;background:rgba(255,50,50,0.15);color:#ff4444;border:1px solid rgba(255,50,50,0.3);letter-spacing:0.06em">&#9632; ARGUS</span>';
   }
   // 🟨 Independent / Substack
   var independentSources=['Substack','Heather Cox Richardson','Robert Reich','The Bulwark','Bari Weiss Free Press','Ben Thompson Stratechery','Import AI','Gary Marcus','Platformer','Noah Smith Noahpinion','Heatmap News','Mondoweiss','972 Magazine','Bellingcat','openDemocracy','Jacobin','National Review','The Dispatch','Judd Legum Popular Info','Tangle News','Caitlin Johnstone','Responsible Statecraft','Lawfare','The Intercept','Democracy Now','The Ink'];
@@ -710,7 +711,7 @@ function engPost(id){
 }
 function engShare(id){
   var a=ART[id];
-  if(navigator.clipboard&&a) navigator.clipboard.writeText('helloman.ai - '+a.title+' ('+a.src+')').then(function(){var b=document.getElementById('eng-share-'+id);if(b){var o=b.innerHTML;b.innerHTML='<span class="eng-icon">&#10003;</span> Copied';setTimeout(function(){b.innerHTML=o;},1800);}});
+  if(navigator.clipboard&&a) navigator.clipboard.writeText('ARGUS - '+a.title+' ('+a.src+')').then(function(){var b=document.getElementById('eng-share-'+id);if(b){var o=b.innerHTML;b.innerHTML='<span class="eng-icon">&#10003;</span> Copied';setTimeout(function(){b.innerHTML=o;},1800);}});
 }
 function showMore(){
   var m=document.getElementById('more-articles');
@@ -1435,7 +1436,7 @@ function buildFront(){
   var allSorted=ARTS.filter(function(a){return a&&a.id&&a.room&&ROOMS[a.room];}).sort(function(a,b){return (hs(b)+b.ai)-(hs(a)+a.ai);});
 
   if(allSorted.length===0){
-    return '<div class="wrap"><div class="masthead"><div class="mh1">HELLOMAN<em>.AI</em></div><div class="mtag">Run the pipeline to add articles.</div></div></div>';
+    return '<div class="wrap"><div class="masthead"><div class="mh1">ARGUS</div><div class="mtag">Run the pipeline to add articles.</div></div></div>';
   }
 
   // Ticker
@@ -1444,7 +1445,7 @@ function buildFront(){
     var room=ROOMS[a.room];
     return '<span class="ti"><strong>'+(room?room.title:'News')+'</strong> '+a.title+'</span>';
   }).join('');
-  if(!th) th='<span class="ti"><strong>Helloman.ai</strong> Loading perspectives...</span>';
+  if(!th) th='<span class="ti"><strong>ARGUS</strong> Loading perspectives...</span>';
   th=th+th;
 
   // Right now
@@ -1515,8 +1516,8 @@ function buildFront(){
   return '<div class="wrap">'+
     '<div class="masthead">'+
       '<div class="mey"><span class="ldot"></span>Live - '+dateStr+'</div>'+
-      '<div class="mh1">HELLOMAN<em>.AI</em></div>'+
-      '<div class="mtag">A living map of how the world is being interpreted.</div>'+
+      '<div class="mh1">ARGUS</div>'+
+      '<div class="mtag">Many eyes. One map. Nothing unseen.</div>'+
       (function(){
         var activeRoomCount=Object.keys(RARTS).filter(function(r){return (RARTS[r]||[]).length>0;}).length;
         var totalRatings=ARTS.reduce(function(s,a){return s+a.hv;},0);
@@ -1930,7 +1931,7 @@ function buildAbout(){
     // Hero
     +'<div style="margin-bottom:48px">'
     +'<div style="font-family:var(--fm);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:16px">What is this</div>'
-    +'<div style="font-family:var(--fd);font-size:clamp(36px,6vw,64px);letter-spacing:0.03em;line-height:1.05;margin-bottom:20px">Helloman<span style="color:var(--accent)">.AI</span> scores ideas,<br>not sources.</div>'
+    +'<div style="font-family:var(--fd);font-size:clamp(36px,6vw,64px);letter-spacing:0.03em;line-height:1.05;margin-bottom:20px">ARGUS scores ideas,<br>not sources.</div>'
     +'<div style="font-size:18px;color:var(--text2);line-height:1.8;max-width:580px">So the best argument wins — regardless of who made it.</div>'
     +'</div>'
 
@@ -1941,9 +1942,9 @@ function buildAbout(){
     +'<p style="font-size:15px;color:var(--text2);line-height:1.85">The result: good thinking stays hidden. Tribal identity decides what we believe. The strongest perspectives never reach the people who most need to encounter them.</p>'
     +'</div>'
 
-    // What helloman does
+    // What ARGUS does
     +'<div style="margin-bottom:40px">'
-    +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;color:var(--text);margin-bottom:20px">What Helloman.AI does</div>'
+    +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;color:var(--text);margin-bottom:20px">What ARGUS does</div>'
     +['Every article is scored on seven dimensions — Reasoning, Evidence, Originality, Nuance, Clarity, Fairness, and Depth — by an AI with no tribal allegiance.',
       'The same rubric applies to a Substack writer with 200 subscribers and a New York Times columnist with 2 million readers. The argument stands on its own.',
       'Human votes are tracked separately. Where humans and AI disagree, that gap is the story — it reveals where rhetoric beats reasoning, or where the crowd is sleeping on a hidden gem.',
@@ -1960,14 +1961,14 @@ function buildAbout(){
     +'<div style="background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(185,128,255,0.05));border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:24px 28px;margin-bottom:40px;position:relative;overflow:hidden">'
     +'<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--purple),#ff6ef7)"></div>'
     +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;margin-bottom:12px">The Reality Split</div>'
-    +'<p style="font-size:15px;color:var(--text2);line-height:1.8">Our most important feature. On every topic, we show you what you would believe if you only read one type of source. Security analysts see one war. Humanitarian reporters see another. Independent diaspora writers see a third. These readings are not reconcilable. Helloman.AI makes that visible — so you can decide which reality to inhabit with full knowledge of what you are choosing.</p>'
+    +'<p style="font-size:15px;color:var(--text2);line-height:1.8">Our most important feature. On every topic, we show you what you would believe if you only read one type of source. Security analysts see one war. Humanitarian reporters see another. Independent diaspora writers see a third. These readings are not reconcilable. ARGUS makes that visible — so you can decide which reality to inhabit with full knowledge of what you are choosing.</p>'
     +'</div>'
 
     // The vision
     +'<div style="margin-bottom:48px">'
     +'<div style="font-family:var(--fd);font-size:22px;letter-spacing:0.03em;color:var(--text);margin-bottom:16px">The larger ambition</div>'
     +'<p style="font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:12px">Today, some of the most rigorous thinking in the world lives on Substack, in academic blogs, and in independent media that 90% of people never encounter. Not because the ideas lack value — but because they are fragmented, scattered, and hidden inside separate ecosystems.</p>'
-    +'<p style="font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:12px">Helloman.AI is designed to become a unified arena for global thought — where a Substack writer, a journalist, and an independent researcher are all part of the same ecosystem, placed side by side, exposed to the same scrutiny.</p>'
+    +'<p style="font-size:15px;color:var(--text2);line-height:1.85;margin-bottom:12px">ARGUS is designed to become a unified arena for global thought — where a Substack writer, a journalist, and an independent researcher are all part of the same ecosystem, placed side by side, exposed to the same scrutiny.</p>'
     +'<p style="font-size:15px;color:var(--accent);line-height:1.85;font-style:italic">This is not another content platform. It is an open intellectual colosseum — where ideas do not hide, but stand face to face.</p>'
     +'</div>'
 
@@ -1975,7 +1976,7 @@ function buildAbout(){
     +'<div style="border-top:1px solid var(--border);padding-top:32px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">'
     +'<div>'
     +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text4);margin-bottom:6px">Built by</div>'
-    +'<div style="font-size:15px;color:var(--text2)">A person who reads too many news sources and believes there are more people like them than they could possibly imagine.</div>'
+    +'<div style="font-size:15px;color:var(--text2)">ARGUS was built by a person who reads too many news sources and believes there are more people like them than they could possibly imagine. Named for Argus Panoptes — the many-eyed being who never fully sleeps, always observing.</div>'
     +'</div>'
     +'</div>'
 
@@ -2094,7 +2095,7 @@ function buildProfilePage(userId){
   return '<div class="wrap" style="max-width:720px;padding:48px 24px 80px">'
     +'<div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:40px;gap:20px;flex-wrap:wrap">'
     +'<div>'
-    +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px">Helloman.ai writer</div>'
+    +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px">ARGUS contributor</div>'
     +'<div style="font-family:var(--fd);font-size:clamp(36px,6vw,56px);letter-spacing:0.03em;line-height:1;margin-bottom:10px">@'+profile.handle+'</div>'
     +(profile.bio?'<div style="font-size:15px;color:var(--text2);line-height:1.7;max-width:480px">'+profile.bio+'</div>':'')
     +'</div>'
@@ -2137,7 +2138,7 @@ function buildWritePage(roomId){
 
   return '<div class="wrap" style="max-width:720px;padding:48px 24px 80px">'
     +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">Publishing as @'+currentProfile.handle+'</div>'
-    +'<div style="font-family:var(--fd);font-size:clamp(32px,5vw,52px);letter-spacing:0.03em;margin-bottom:32px">Write your perspective</div>'
+    +'<div style="font-family:var(--fd);font-size:clamp(32px,5vw,52px);letter-spacing:0.03em;margin-bottom:32px">Write for ARGUS</div>'
     +'<div style="display:flex;flex-direction:column;gap:20px">'
     +'<div class="submit-field"><label class="submit-label">Room <span>*</span></label>'
     +'<select class="submit-input" id="write-room" style="cursor:pointer"><option value="">Choose a room...</option>'+roomOptions+'</select></div>'
