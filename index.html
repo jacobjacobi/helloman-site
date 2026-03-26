@@ -1526,7 +1526,7 @@ function buildEventOfMoment(){
 
   // Context — use room synthesis summary if available, otherwise fallback
   var context=room.context||'The most active story on ARGUS right now. Multiple sources, multiple realities — all in one room.';
-  var macroFrame=MACRO_FRAMES&&MACRO_FRAMES[best]?MACRO_FRAMES[best]:null;
+  var macroFrame=MACRO_FRAMES&&MACRO_FRAMES[best]?(MACRO_FRAMES[best].statement||MACRO_FRAMES[best]):null;
 
   return '<div class="eom-block" data-room="'+best+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'
     // Eyebrow
@@ -1588,7 +1588,8 @@ function buildFront(){
     var mf=MACRO_FRAMES[rid];
     var room=ROOMS[rid];
     if(!room||!mf) return;
-    tickerItems.push('<span class="ti"><strong style="color:var(--purple)">ARGUS MACRO</strong> '+mf+'</span>');
+    var mfText=mf.statement||mf;
+    tickerItems.push('<span class="ti"><strong style="color:var(--purple)">ARGUS MACRO</strong> '+mfText+'</span>');
   });
 
   // Shuffle for variety — interleave types
