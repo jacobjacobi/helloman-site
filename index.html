@@ -394,6 +394,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
 .show-more-btn{background:transparent;border:1px solid var(--border2);color:var(--text2);font-family:var(--fm);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 32px;border-radius:4px;cursor:pointer;transition:all 0.2s}
 .show-more-btn:hover{border-color:var(--accent);color:var(--accent)}
 .sum-err{font-family:var(--fm);font-size:12px;color:var(--red);padding:8px 0}
+.top-ticker{background:rgba(0,0,0,0.6);border-bottom:1px solid var(--border);overflow:hidden;height:32px;display:flex;align-items:center}
+.top-ticker .tinner{white-space:nowrap;animation:ticker 60s linear infinite;font-size:11px}
+.top-ticker .ti{display:inline-block;padding:0 32px;color:var(--text3);letter-spacing:0.04em}
+.top-ticker .ti strong{margin-right:8px}
 .ticker{overflow:hidden;white-space:nowrap;padding:8px 0;border-bottom:1px solid var(--border);background:var(--bg2)}
 .tinner{display:inline-block;animation:tick 40s linear infinite}
 .tinner:hover{animation-play-state:paused}
@@ -1521,6 +1525,7 @@ function buildEventOfMoment(){
 
   // Context — use room synthesis summary if available, otherwise fallback
   var context=room.context||'The most active story on ARGUS right now. Multiple sources, multiple realities — all in one room.';
+  var macroFrame=MACRO_FRAMES&&MACRO_FRAMES[best]?MACRO_FRAMES[best]:null;
 
   return '<div class="eom-block" data-room="'+best+'" onclick="nav(\u0027room\u0027,this.dataset.room)">'
     // Eyebrow
@@ -1535,6 +1540,10 @@ function buildEventOfMoment(){
     +'<div class="eom-body">'
     +'<div class="eom-title">'+room.title+'</div>'
     +'<div class="eom-context">'+context+'</div>'
+    +(macroFrame?'<div style="margin:0 0 20px;padding:12px 18px;background:rgba(185,128,255,0.07);border:1px solid rgba(185,128,255,0.2);border-radius:6px;border-left:2px solid var(--purple)">'
+      +'<div style="font-family:var(--fm);font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--purple);margin-bottom:6px">&#9632; ARGUS Macro</div>'
+      +'<div style="font-size:13px;color:var(--text2);line-height:1.65;font-style:italic">&ldquo;'+macroFrame+'&rdquo;</div>'
+      +'</div>':'')
     +'</div>'
     // Reality Split
     +'<div style="padding:0 0 3px"><div style="font-family:var(--fm);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text4);padding:8px 24px 8px">Reality Split &mdash; if you only read one source, you believe:</div>'
@@ -1554,12 +1563,35 @@ function buildFront(){
     return '<div class="wrap"><div class="masthead"><div class="mh1">ARGUS</div><div class="mtag">Run the pipeline to add articles.</div></div></div>';
   }
 
-  // Ticker
-  var tickerArts=allSorted.slice(0,10);
-  var th=tickerArts.map(function(a){
+  // Rich ticker — headlines + reality split statements + macro frames
+  var tickerItems=[];
+
+  // Add top article headlines
+  allSorted.slice(0,8).forEach(function(a){
     var room=ROOMS[a.room];
-    return '<span class="ti"><strong>'+(room?room.title:'News')+'</strong> '+a.title+'</span>';
-  }).join('');
+    tickerItems.push('<span class="ti"><strong style="color:var(--accent)">'+(room?room.title.toUpperCase():'NEWS')+'</strong> '+a.title+'</span>');
+  });
+
+  // Add reality split statements
+  Object.keys(REALITY_SPLIT).forEach(function(rid){
+    var splits=REALITY_SPLIT[rid]||[];
+    var room=ROOMS[rid];
+    if(!room||!splits.length) return;
+    splits.slice(0,1).forEach(function(sp){
+      tickerItems.push('<span class="ti"><strong style="color:'+sp.color+'">'+sp.cluster.toUpperCase()+'</strong> '+sp.statement+'</span>');
+    });
+  });
+
+  // Add macro frames
+  Object.keys(MACRO_FRAMES).forEach(function(rid){
+    var mf=MACRO_FRAMES[rid];
+    var room=ROOMS[rid];
+    if(!room||!mf) return;
+    tickerItems.push('<span class="ti"><strong style="color:var(--purple)">ARGUS MACRO</strong> '+mf+'</span>');
+  });
+
+  // Shuffle for variety — interleave types
+  var th=tickerItems.join('');
   if(!th) th='<span class="ti"><strong>ARGUS</strong> Loading perspectives...</span>';
   th=th+th;
 
@@ -1628,7 +1660,8 @@ function buildFront(){
   var nd=new Date();
   var dateStr=nd.getDate()+' '+months[nd.getMonth()]+' '+nd.getFullYear();
 
-  return '<div class="wrap">'+
+  return '<div class="top-ticker"><div class="tinner">'+th+'</div></div>'+
+    '<div class="wrap">'+
     '<div class="masthead">'+
       '<div class="mey"><span class="ldot"></span>Live - '+dateStr+'</div>'+
       '<div class="mh1">ARGUS</div>'+
