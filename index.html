@@ -394,9 +394,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
 .show-more-btn{background:transparent;border:1px solid var(--border2);color:var(--text2);font-family:var(--fm);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 32px;border-radius:4px;cursor:pointer;transition:all 0.2s}
 .show-more-btn:hover{border-color:var(--accent);color:var(--accent)}
 .sum-err{font-family:var(--fm);font-size:12px;color:var(--red);padding:8px 0}
-.top-ticker{background:rgba(0,0,0,0.6);border-bottom:1px solid var(--border);overflow:hidden;height:32px;display:flex;align-items:center}
-.top-ticker .tinner{white-space:nowrap;animation:ticker 60s linear infinite;font-size:11px}
-.top-ticker .ti{display:inline-block;padding:0 32px;color:var(--text3);letter-spacing:0.04em}
+.top-ticker{background:rgba(0,0,0,0.6);border-bottom:1px solid var(--border);overflow:hidden;height:32px;display:flex;align-items:center;width:100%}
+.top-ticker .tinner{display:inline-block;white-space:nowrap;animation:tick 80s linear infinite;font-size:11px;will-change:transform}
+.top-ticker .tinner:hover{animation-play-state:paused}
+.top-ticker .ti{display:inline-block;padding:0 40px;color:var(--text3);letter-spacing:0.04em;border-right:1px solid var(--border)}
 .top-ticker .ti strong{margin-right:8px}
 .ticker{overflow:hidden;white-space:nowrap;padding:8px 0;border-bottom:1px solid var(--border);background:var(--bg2)}
 .tinner{display:inline-block;animation:tick 40s linear infinite}
