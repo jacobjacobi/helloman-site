@@ -1517,7 +1517,23 @@ function buildFront(){
       '<div class="mey"><span class="ldot"></span>Live - '+dateStr+'</div>'+
       '<div class="mh1">HELLOMAN<em>.AI</em></div>'+
       '<div class="mtag">A living map of how the world is being interpreted.</div>'+
-      '<div class="mmeta"><span>'+Object.keys(ROOMS).length+' rooms</span><span>'+ARTS.length+' perspectives ranked</span><span>'+ARTS.reduce(function(s,a){return s+a.hv;},0)+' human ratings</span><span>Showing top '+Math.min(18,ARTS.length)+' on front page</span></div>'+
+      (function(){
+        var activeRoomCount=Object.keys(RARTS).filter(function(r){return (RARTS[r]||[]).length>0;}).length;
+        var totalRatings=ARTS.reduce(function(s,a){return s+a.hv;},0);
+        // Count articles added today
+        var today=new Date();today.setHours(0,0,0,0);
+        var todayCount=ARTS.filter(function(a){
+          if(!a.createdAt) return false;
+          return new Date(a.createdAt)>=today;
+        }).length;
+        var todayStr=todayCount>0?'<span style="color:var(--green)">+'+todayCount+' today</span>':'';
+        return '<div class="mmeta">'
+          +'<span>'+activeRoomCount+' active rooms</span>'
+          +'<span>'+ARTS.length+' perspectives</span>'
+          +(todayStr?'<span>'+todayStr+'</span>':'')
+          +(totalRatings>0?'<span>'+totalRatings+' human ratings</span>':'')
+          +'</div>';
+      }())+
     '</div>'+
     '<div class="rn-section"><div class="slabel">Right now <span class="slr" style="color:var(--red)">LIVE</span></div><div class="rn-items">'+rnHtml+'</div></div>'+
     buildFpMacro()+buildFpRealitySplit()+makeSumPanel('front',null)+
