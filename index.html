@@ -1315,10 +1315,10 @@ var ROOM_IMAGES = {
 };
 
 // Get image URL for an article
-// Uses AI-generated image if available (winners only), falls back to Picsum
+// Using Picsum with room-based seeds for now — AI images paused
 function getArticleImage(art, w, h) {
-  // Winner articles have AI-generated images
-  if (art.aiImg) return art.aiImg;
+  // AI images temporarily disabled — using curated Picsum
+  // if (art.aiImg) return art.aiImg;
   var room = art.room || 'iran-war-2026';
 
   // Topic-matched Picsum photo pools
