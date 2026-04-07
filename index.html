@@ -660,7 +660,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--fb);font-weight:30
       <span class="nl on" id="nl-front" onclick="nav('front')">Front Page</span>
       <span class="nl" id="nl-rooms" onclick="nav('rooms')">Rooms</span>
       <span class="nl" id="nl-about" onclick="nav('about')">About</span>
-      <span class="nl" id="nl-write" onclick="nav('write',null)" style="color:var(--accent)">Write</span>
+      <span class="nl" id="nl-write" onclick="nav(\u0027write\u0027,null)" style="color:var(--accent)">Write</span>
       <button id="auth-btn" onclick="openSignIn()" style="font-family:var(--fm);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:6px 14px;border-radius:4px;cursor:pointer;margin:auto 8px;transition:all 0.2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">Sign in</button>
       <span class="ndate" id="nav-date"></span>
     </div>
@@ -2152,3 +2152,239 @@ function buildAbout(){
 
     +'</div>';
 }
+// ── SIGN IN MODAL ────────────────────────────────────────────────────
+function openSignIn(){
+  if(currentUser&&!currentProfile){openSetHandle();return;}
+  if(currentUser&&currentProfile){nav('profile',currentUser.id);return;}
+  var existing=document.getElementById('signin-overlay');
+  if(existing){existing.classList.add('open');return;}
+  document.body.insertAdjacentHTML('beforeend',buildSignInModal());
+}
+function closeSignIn(){
+  var el=document.getElementById('signin-overlay');
+  if(el) el.classList.remove('open');
+}
+async function submitSignIn(){
+  var email=document.getElementById('signin-email').value.trim();
+  if(!email){alert('Please enter your email.');return;}
+  var btn=document.getElementById('signin-submit');
+  btn.textContent='Sending...';btn.disabled=true;
+  var ok=await signIn(email);
+  if(ok){
+    document.getElementById('signin-form').style.display='none';
+    document.getElementById('signin-success').style.display='flex';
+  } else {
+    btn.textContent='Send magic link';btn.disabled=false;
+    alert('Something went wrong. Please try again.');
+  }
+}
+function buildSignInModal(){
+  return '<div class="submit-modal-overlay" id="signin-overlay" onclick="if(event.target===this)closeSignIn()">'
+    +'<div class="submit-modal" style="max-width:420px">'
+    +'<div class="submit-modal-header">'
+    +'<div><div class="submit-modal-title">Enter ARGUS</div>'
+    +'<div class="submit-modal-sub">Sign in to publish, rate, and build your record inside ARGUS</div></div>'
+    +'<button class="submit-modal-close" onclick="closeSignIn()">&#215;</button>'
+    +'</div>'
+    +'<div id="signin-form" class="submit-modal-body">'
+    +'<div class="submit-field"><label class="submit-label">Your email</label>'
+    +'<input class="submit-input" id="signin-email" type="email" placeholder="you@example.com" /></div>'
+    +'<div class="submit-hint">&#9432; We send a magic link — no password needed.</div>'
+    +'<div class="submit-actions">'
+    +'<button class="submit-btn-cancel" onclick="closeSignIn()">Cancel</button>'
+    +'<button class="submit-btn-main" id="signin-submit" onclick="submitSignIn()">Send magic link</button>'
+    +'</div>'
+    +'</div>'
+    +'<div id="signin-success" style="display:none;flex-direction:column;align-items:center;gap:14px;padding:32px 24px;text-align:center">'
+    +'<div style="font-size:48px">&#9993;</div>'
+    +'<div style="font-family:var(--fd);font-size:24px;color:var(--green)">Check your email</div>'
+    +'<div style="font-size:14px;color:var(--text2);line-height:1.7">We sent a magic link to your inbox.</div>'
+    +'<button class="submit-success-close" onclick="closeSignIn()">Got it</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+function openSetHandle(){
+  document.body.insertAdjacentHTML('beforeend',buildSetHandleModal());
+}
+function closeSetHandle(){
+  var el=document.getElementById('handle-overlay');
+  if(el) el.remove();
+}
+async function submitHandle(){
+  var handle=document.getElementById('handle-input').value.trim().replace(/[^a-zA-Z0-9_]/g,'');
+  var bio=document.getElementById('bio-input').value.trim();
+  if(!handle||handle.length<3){alert('Handle must be at least 3 characters.');return;}
+  var btn=document.getElementById('handle-submit');
+  btn.textContent='Creating...';btn.disabled=true;
+  var profile=await createProfile(handle,bio);
+  if(profile){closeSetHandle();updateAuthUI();nav('profile',currentUser.id);}
+  else{btn.textContent='Create profile';btn.disabled=false;alert('That handle may already be taken.');}
+}
+function buildSetHandleModal(){
+  return '<div class="submit-modal-overlay open" id="handle-overlay" onclick="if(event.target===this)closeSetHandle()">'
+    +'<div class="submit-modal" style="max-width:420px">'
+    +'<div class="submit-modal-header">'
+    +'<div><div class="submit-modal-title">Choose your handle</div>'
+    +'<div class="submit-modal-sub">This is your name in the arena.</div></div>'
+    +'</div>'
+    +'<div class="submit-modal-body">'
+    +'<div class="submit-field"><label class="submit-label">Handle <span>*</span></label>'
+    +'<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--text3);font-family:var(--fm)">@</span>'
+    +'<input class="submit-input" id="handle-input" placeholder="yourhandle" style="flex:1" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,\u0027\u0027)" /></div>'
+    +'</div>'
+    +'<div class="submit-field"><label class="submit-label">Bio (optional)</label>'
+    +'<input class="submit-input" id="bio-input" placeholder="Who are you?" /></div>'
+    +'<div class="submit-actions">'
+    +'<button class="submit-btn-main" id="handle-submit" onclick="submitHandle()">Create profile</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+function buildProfilePage(userId){
+  var isOwn=currentUser&&currentUser.id===userId;
+  var profile=isOwn?currentProfile:null;
+  if(!profile) return '<div class="wrap" style="padding:60px 0;color:var(--text2)">Loading profile...</div>';
+  return '<div class="wrap" style="max-width:720px;padding:48px 24px 80px">'
+    +'<div style="margin-bottom:40px">'
+    +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px">ARGUS contributor</div>'
+    +'<div style="font-family:var(--fd);font-size:clamp(36px,6vw,56px);letter-spacing:0.03em;line-height:1;margin-bottom:10px">@'+profile.handle+'</div>'
+    +(profile.bio?'<div style="font-size:15px;color:var(--text2);line-height:1.7">'+profile.bio+'</div>':'')
+    +'</div>'
+    +(isOwn?'<button onclick="signOut()" style="font-family:var(--fm);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--border2);color:var(--text3);padding:8px 16px;border-radius:4px;cursor:pointer;margin-bottom:32px">Sign out</button>':'')
+    +'<div style="margin-top:32px"><button onclick="nav(\u0027write\u0027,null)" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:18px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px 32px;cursor:pointer">Write a new article &#8599;</button></div>'
+    +'</div>';
+}
+
+function buildWritePage(roomId){
+  if(!currentUser){
+    return '<div class="wrap" style="padding:80px 24px;text-align:center">'
+      +'<div style="font-family:var(--fd);font-size:48px;letter-spacing:0.03em;margin-bottom:16px">Write here.</div>'
+      +'<div style="font-size:16px;color:var(--text2);margin-bottom:32px;line-height:1.7;max-width:400px;margin-left:auto;margin-right:auto">Publish your perspective directly into a room.</div>'
+      +'<button onclick="openSignIn()" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:20px;letter-spacing:0.06em;border:none;border-radius:6px;padding:14px 36px;cursor:pointer">Sign in to write</button>'
+      +'</div>';
+  }
+  if(!currentProfile){
+    return '<div class="wrap" style="padding:80px 24px;text-align:center">'
+      +'<div style="font-family:var(--fd);font-size:36px;margin-bottom:16px">First, choose your handle.</div>'
+      +'<button onclick="openSetHandle()" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:18px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px 32px;cursor:pointer">Set up profile</button>'
+      +'</div>';
+  }
+  var roomOptions=Object.values(ROOMS).map(function(r){
+    return '<option value="'+r.id+'"'+(roomId===r.id?' selected':'')+'>'+r.title+'</option>';
+  }).join('');
+  return '<div class="wrap" style="max-width:720px;padding:48px 24px 80px">'
+    +'<div style="font-family:var(--fm);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">Publishing as @'+currentProfile.handle+'</div>'
+    +'<div style="font-family:var(--fd);font-size:clamp(32px,5vw,52px);letter-spacing:0.03em;margin-bottom:32px">Write for ARGUS</div>'
+    +'<div style="display:flex;flex-direction:column;gap:20px">'
+    +'<div class="submit-field"><label class="submit-label">Room <span>*</span></label>'
+    +'<select class="submit-input" id="write-room" style="cursor:pointer"><option value="">Choose a room...</option>'+roomOptions+'</select></div>'
+    +'<div class="submit-field"><label class="submit-label">Headline <span>*</span></label>'
+    +'<input class="submit-input" id="write-title" placeholder="State your argument in one sharp sentence" /></div>'
+    +'<div class="submit-field"><label class="submit-label">Your perspective <span>*</span></label>'
+    +'<textarea class="submit-textarea" id="write-body" style="min-height:320px;font-size:15px;line-height:1.8" placeholder="Write your argument. Be specific. The AI will score your reasoning."></textarea></div>'
+    +'<div style="display:flex;gap:12px;padding-top:8px">'
+    +'<button onclick="nav(\u0027front\u0027,null)" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-family:var(--fm);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:6px;padding:13px 20px;cursor:pointer">Cancel</button>'
+    +'<button onclick="submitOriginalArticle()" style="flex:1;background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:20px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px;cursor:pointer">Publish to the arena &#8599;</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+async function submitOriginalArticle(){
+  var room=document.getElementById('write-room').value;
+  var title=document.getElementById('write-title').value.trim();
+  var body=document.getElementById('write-body').value.trim();
+  if(!room||!title||!body){alert('Room, headline and body are required.');return;}
+  if(body.length<200){alert('Article needs at least 200 characters.');return;}
+  var btn=document.querySelector('[onclick="submitOriginalArticle()"]');
+  btn.textContent='Publishing...';btn.disabled=true;
+  var session=await getSupabase().auth.getSession();
+  var token=session.data.session.access_token;
+  var res=await fetch(SUPABASE_URL+'/rest/v1/original_articles',{
+    method:'POST',
+    headers:Object.assign({},SB_HEADERS,{'Authorization':'Bearer '+token}),
+    body:JSON.stringify({author_id:currentUser.id,room_id:room,title:title,body:body,is_scored:false})
+  });
+  if(res.ok){
+    document.querySelector('.wrap').innerHTML='<div style="padding:80px 24px;text-align:center">'
+      +'<div style="font-size:48px;margin-bottom:16px">&#10003;</div>'
+      +'<div style="font-family:var(--fd);font-size:36px;color:var(--green);margin-bottom:12px">Published.</div>'
+      +'<button onclick="nav(\u0027room\u0027,\u0027'+room+'\u0027)" style="background:var(--accent);color:var(--bg);font-family:var(--fd);font-size:18px;letter-spacing:0.06em;border:none;border-radius:6px;padding:13px 32px;cursor:pointer">See it in the room</button>'
+      +'</div>';
+  } else {
+    btn.textContent='Publish to the arena';btn.disabled=false;
+    alert('Something went wrong. Please try again.');
+  }
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────────
+(function boot(){
+  // Set nav date
+  var months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  var nd=new Date();
+  var dateEl=document.getElementById('nav-date');
+  if(dateEl) dateEl.textContent=nd.getDate()+' '+months[nd.getMonth()]+' '+nd.getFullYear();
+
+  initAuth().then(function(){updateAuthUI();});
+
+  Promise.all([
+    sbFetch('rooms','order=id'),
+    sbFetch('articles','order=created_at.desc&limit=300&select=*')
+  ]).then(function(results){
+    var rawRooms=results[0], rawArticles=results[1];
+
+    if(!Array.isArray(rawRooms)||!Array.isArray(rawArticles)){
+      document.getElementById('page').innerHTML='<div class="wrap" style="padding:60px 0;color:var(--text2);font-family:var(--fm)">Could not load data. Check Supabase connection.</div>';
+      return;
+    }
+
+    // Build ROOMS
+    var ROOM_CONTEXTS={
+      'iran-war-2026':'US and Israeli strikes on Iran have triggered a regional confrontation — the biggest Middle East escalation in decades.',
+      'isr-pal':'The war in Gaza has entered its second year, with no ceasefire in sight and a deepening humanitarian catastrophe.',
+      'ukraine-russia':'Russia\u0027s invasion of Ukraine continues into its third year — with the front lines shifting and Western support under pressure.',
+      'us-china':'The strategic rivalry between the US and China is reshaping global trade, technology, and military alliances.',
+      'trump':'The Trump administration is reshaping US domestic and foreign policy at unprecedented speed.',
+      'climate':'Extreme weather events are accelerating while global emissions targets remain largely unmet.',
+      'ai-race':'The race to build the most powerful AI systems is intensifying — with profound implications for every industry.',
+      'us-economy':'Tariffs, inflation, and Federal Reserve policy are creating uncertainty across the US and global economy.',
+      'europe-politics':'The rise of far-right parties across Europe is challenging the political center and the future of the EU.',
+      'migration-crisis':'Migration to Europe and the US has reached record levels, driving political polarisation.',
+      'middle-east':'The broader Middle East is in flux — with Iran, Saudi Arabia, and Israel reshaping alliances.',
+      'trade-wars':'A new era of protectionism is fracturing global trade as major economies impose sweeping tariffs.'
+    };
+    rawRooms.forEach(function(r){
+      ROOMS[r.id]={id:r.id,label:r.label,title:r.title,full:r.full_name,desc:r.description,context:ROOM_CONTEXTS[r.id]||r.description||null,act:[1,1,1,1,1,1,1]};
+    });
+
+    // Build ARTS
+    ARTS=rawArticles.filter(function(a){return a&&a.id&&a.room_id;}).map(transformArticle);
+
+    // Rebuild lookups
+    ART={};
+    ARTS.forEach(function(a){ART[a.id]=a;});
+
+    // Build RARTS
+    RARTS={};
+    ARTS.forEach(function(a){
+      if(!a.room||!ROOMS[a.room]) return;
+      if(!RARTS[a.room]) RARTS[a.room]=[];
+      RARTS[a.room].push(a);
+    });
+    Object.keys(RARTS).forEach(function(rid){
+      RARTS[rid].sort(function(a,b){return (hs(b)+b.ai)-(hs(a)+a.ai);});
+      RARTS[rid].forEach(function(a,i){a.rank=i+1;});
+    });
+
+    doRender('front',null);
+  }).catch(function(e){
+    document.getElementById('page').innerHTML='<div class="wrap" style="padding:60px 0;color:var(--text2);font-family:var(--fm)">Error loading data: '+e.message+'</div>';
+  });
+})();
+</script>
+</body>
+</html>
